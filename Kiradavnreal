@@ -61,7 +61,7 @@ local function createIntroAnimation()
     fadeInFrame:Play()
     fadeIn.Completed:Wait()
 
-    wait(5) -- Giữ thông báo trong 5 giây
+    wait(5) -- Giữ thông báo trong 2 giây
 
     fadeOut:Play()
     fadeOutFrame:Play()
