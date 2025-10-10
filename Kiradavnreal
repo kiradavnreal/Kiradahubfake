@@ -1,31 +1,10 @@
--- Kiểm tra executor và kick
-local function checkExecutor()
-    local executor = identifyexecutor and identifyexecutor() or "Unknown"
-    if executor:lower():find("codex") or executor:lower():find("fluxus") then
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "Cảnh Báo",
-            Text = "Đừng sài nó không an toàn",
-            Duration = 5
-        })
-        wait(5)
-        game:Shutdown()
-    elseif executor:lower():find("arceus") then
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "Cảnh Báo",
-            Text = "Bạn khinh thường chúng tôi?",
-            Duration = 5
-        })
-        wait(5)
-        game:Shutdown()
-    end
-end
-checkExecutor()
-
 -- Kiểm tra game
 local _g = game:GetService("Players").LocalPlayer.PlayerGui
 local _t = game:GetService("TweenService")
 local _c = game:GetService("ContentProvider")
 local _n = game:GetService("StarterGui")
+local _p = game:GetService("Players")
+local _ts = game:GetService("TeleportService")
 local gId = game.PlaceId
 local sG = {
     [2753915549] = "Blox Fruits",
@@ -39,9 +18,38 @@ if not sG[gId] then
     })
 end
 
+-- Phát hiện admin và hop server
+local function checkAdmin()
+    local adminIds = {
+        [912348] = true  -- ID admin đã thêm
+    }
+    
+    _p.PlayerAdded:Connect(function(player)
+        local isAdmin = adminIds[player.UserId] or player.Name:lower():find("admin") or player:GetRoleInGroup(game.CreatorId) ~= "Guest"
+        
+        if isAdmin then
+            _n:SetCore("SendNotification", {
+                Title = "Cảnh Báo",
+                Text = "Admin vô server sẽ đổi server trong 5s nữa",
+                Duration = 5
+            })
+            wait(5)
+            pcall(function()
+                _ts:TeleportToPlaceInstance(gId, game.JobId, _p.LocalPlayer)
+            end)
+        end
+    end)
+end
+checkAdmin()
+
 -- Tải UI
 pcall(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/daucobonhi/Ui-Redz-V2/refs/heads/main/UiREDzV2.lua"))()
+end)
+
+-- Preload ảnh nền menu
+pcall(function()
+    _c:PreloadAsync({"rbxassetid://756765780901"})
 end)
 
 -- Intro animation
@@ -100,10 +108,24 @@ local function _iA()
 end
 _iA()
 
--- Tạo UI
+-- Tạo UI với ảnh nền
 local W = MakeWindow({
-    Hub = {Title = "Kirada VN", Animation = "YouTube: Kirada VN"},
-    Key = {KeySystem = false, Title = "Key System", Keys = {"1234"}, Notifi = {Notifications = true, CorrectKey = "Running the Script...", Incorrectkey = "The key is incorrect", CopyKeyLink = "Copied to Clipboard"}}
+    Hub = {
+        Title = "Kirada VN",
+        Animation = "YouTube: Kirada VN",
+        BackgroundImage = "rbxassetid://756765780901"  -- Thêm ảnh nền cho menu
+    },
+    Key = {
+        KeySystem = false,
+        Title = "Key System",
+        Keys = {"1234"},
+        Notifi = {
+            Notifications = true,
+            CorrectKey = "Running the Script...",
+            Incorrectkey = "The key is incorrect",
+            CopyKeyLink = "Copied to Clipboard"
+        }
+    }
 })
 
 -- Tải logo
@@ -184,6 +206,35 @@ AddButton(T5, {
         end
     end
 })
+
+-- Tab: Idol YTB Hack
+local T6 = MakeTab({Name = "Idol YTB Hack"})
+local function _aYTB(t, n, u, s)
+    AddButton(t, {
+        Name = n,
+        Callback = function()
+            local s, e = pcall(function()
+                setclipboard(u)
+            end)
+            if not s then
+                _n:SetCore("SendNotification", {
+                    Title = "Lỗi",
+                    Text = "Không thể sao chép link " .. s .. ": " .. tostring(e),
+                    Duration = 5
+                })
+            else
+                _n:SetCore("SendNotification", {
+                    Title = s,
+                    Text = "Đã sao chép link " .. s .. " vào clipboard! Nguồn: " .. s,
+                    Duration = 5
+                })
+            end
+        end
+    })
+end
+_aYTB(T6, "Copy Vịt Lỏd Link", "https://www.youtube.com/channel/UCQinN9_tN8ln_Mk3hqEfLLw", "Vịt Lỏd")
+_aYTB(T6, "Copy EZ AK Gaming Link", "https://www.youtube.com/@akgamingytb999", "EZ AK Gaming")
+_aYTB(T6, "Copy TBoy Link", "https://www.youtube.com/channel/UCTwTw3BeiQm2dNtsVeCxlYw", "TBoy")
 
 -- Tab: Mạng Xã Hội
 local T4 = MakeTab({Name = "Mạng Xã Hội"})
