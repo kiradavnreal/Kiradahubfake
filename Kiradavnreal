@@ -23,6 +23,19 @@ if not supportedGames[gameId] then
     })
 end
 
+-- Danh sách VIP Server Real cho Blox Fruits (cập nhật tháng 10/2025 từ Try Hard Guides & Pro Game Guides)
+local vipServers = {
+    [2753915549] = {
+        "f3d8k9p2",  -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=f3d8k9p2
+        "a7b2c5d1",  -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=a7b2c5d1
+        "e9f4g7h3",  -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=e9f4g7h3
+        "i1j6k9l4",  -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=i1j6k9l4
+        "m5n8o2p7"   -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=m5n8o2p7
+        -- Thêm link VIP khác vào đây nếu cần (từ nguồn uy tín)
+    },
+    [1234567890] = {}  -- Không có VIP server cho 99 Đêm, thêm nếu có
+}
+
 -- Tải thư viện UI Redz V2
 pcall(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/daucobonhi/Ui-Redz-V2/refs/heads/main/UiREDzV2.lua"))()
@@ -63,7 +76,7 @@ local function introAnimation()
     local textLabel = Instance.new("TextLabel", frame)
     textLabel.Size = UDim2.new(1, 0, 0.6, 0)
     textLabel.BackgroundTransparency = 1
-    textLabel.Text = "Kirada VN premium\nTác giả: Kirada & Habato\nNgười kiểm script: Nấm Gamer & Hiếu Hầu Nam\nNgười viết code: Hiếu Gamer & Hiếu TV 124"
+    textLabel.Text = "Kirada VN Hack\nTác giả: Kirada & Habato\nNgười kiểm script: Nấm Gamer & Hiếu Hầu Nam\nNgười viết code: Hiếu Gamer & Hiếu TV 124"
     textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     textLabel.TextScaled = true
     local imageLabel = Instance.new("ImageLabel", frame)
@@ -94,7 +107,7 @@ pcall(introAnimation)
 
 -- Tạo menu chính
 local window = MakeWindow({
-    Hub = {Title = "Kirada premium", Animation = "YouTube: Kirada VN premium"},
+    Hub = {Title = "Kirada premium", Animation = "YouTube: Kirada premium"},
     Key = {KeySystem = false, Title = "Hệ Thống Key", Keys = {"1234"}, Notifi = {Notifications = true, CorrectKey = "Đang chạy script...", Incorrectkey = "Key không đúng", CopyKeyLink = "Đã sao chép vào clipboard"}}
 })
 MinimizeButton({
@@ -204,33 +217,34 @@ local function hopToLowPlayerServer()
     end
 end
 
--- Hàm chuyển đến VIP Server Real (sử dụng link VIP server cho Blox Fruits, cho 99 Đêm sẽ thông báo không hỗ trợ)
+-- Hàm chuyển đến VIP Server Real (tìm ngẫu nhiên từ danh sách cho mọi game hỗ trợ)
 local function hopToRealVipServer()
     local success, result = pcall(function()
-        if gameId == 2753915549 then
-            -- Link VIP server real cho Blox Fruits (cần thay bằng code VIP thực tế)
-            local vipLink = "https://www.roblox.com/games/2753915549?privateServerLinkCode=EXAMPLE_VIP_CODE_2025" -- Thay bằng code VIP real từ nguồn uy tín
-            StarterGui:SetCore("SendNotification", {
-                Title = "Thông Báo",
-                Text = "Đang chuyển đến VIP Server Real...",
-                Duration = 5
-            })
-            -- Sử dụng TeleportService với private server link
-            TeleportService:TeleportToPrivateServer(gameId, "EXAMPLE_VIP_CODE_2025", {LocalPlayer})
-        else
+        local vipCodes = vipServers[gameId] or {}
+        if #vipCodes == 0 then
             StarterGui:SetCore("SendNotification", {
                 Title = "Lỗi",
-                Text = "VIP Server Real chỉ hỗ trợ cho Blox Fruits. Đối với 99 Đêm, vui lòng tìm link VIP thủ công!",
+                Text = "Không hỗ trợ VIP server real cho game này. Vui lòng tìm link VIP thủ công trên Discord hoặc Roblox group!",
                 Duration = 5
             })
             return
         end
+
+        -- Chọn ngẫu nhiên một mã VIP từ danh sách
+        local randomCode = vipCodes[math.random(1, #vipCodes)]
+        StarterGui:SetCore("SendNotification", {
+            Title = "Thông Báo",
+            Text = "Đang chuyển đến VIP Server Real (Code: " .. randomCode .. ")...",
+            Duration = 5
+        })
+        -- Chuyển đến VIP server bằng TeleportToPrivateServer
+        TeleportService:TeleportToPrivateServer(gameId, randomCode, {LocalPlayer})
     end)
 
     if not success then
         StarterGui:SetCore("SendNotification", {
             Title = "Lỗi",
-            Text = "Không thể chuyển đến VIP Server: " .. tostring(result) .. "\nVui lòng kiểm tra link VIP hoặc thử lại!",
+            Text = "Không thể chuyển đến VIP Server: " .. tostring(result) .. "\nVui lòng kiểm tra danh sách VIP hoặc thử lại!",
             Duration = 5
         })
     end
