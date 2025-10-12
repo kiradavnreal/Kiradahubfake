@@ -1,3 +1,4 @@
+
 -- Khai báo các service cần thiết
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -47,7 +48,7 @@ pcall(function()
         "rbxassetid://75676578090181",
         "rbxassetid://89326205091486",
         "rbxassetid://8987546731",
-        "rbxassetid://81829609054965"
+        "rbxassetid://114213622974713"
     })
 end)
 
@@ -69,11 +70,11 @@ local function playStartupSound()
     end)
 end
 
--- Phát âm thanh 81829609054965 lặp lại
+-- Phát âm thanh 114213622974713 lặp lại
 local function playLoopedSound()
     if not soundPlaying then return end
     currentSound = Instance.new("Sound", SoundService)
-    currentSound.SoundId = "rbxassetid://81829609054965"
+    currentSound.SoundId = "rbxassetid://114213622974713"
     currentSound.Volume = 1
     currentSound.PlayOnRemove = false
     currentSound.Looped = true
