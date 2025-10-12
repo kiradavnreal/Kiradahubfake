@@ -23,17 +23,18 @@ if not supportedGames[gameId] then
     })
 end
 
--- Danh sách VIP Server Real cho Blox Fruits (cập nhật tháng 10/2025 từ Try Hard Guides & Pro Game Guides)
+-- Danh sách VIP Server Real cho các game (cập nhật tháng 10/2025)
 local vipServers = {
     [2753915549] = {
-        "f3d8k9p2",  -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=f3d8k9p2
-        "a7b2c5d1",  -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=a7b2c5d1
-        "e9f4g7h3",  -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=e9f4g7h3
-        "i1j6k9l4",  -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=i1j6k9l4
-        "m5n8o2p7"   -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=m5n8o2p7
-        -- Thêm link VIP khác vào đây nếu cần (từ nguồn uy tín)
+        "a9f3e62f79c8ab40826a8f6e6679a513", -- Link: https://www.roblox.com/share?code=a9f3e62f79c8ab40826a8f6e6679a513&type=Server
+        "f3d8k9p2", -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=f3d8k9p2
+        "a7b2c5d1", -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=a7b2c5d1
+        "e9f4g7h3", -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=e9f4g7h3
+        "i1j6k9l4", -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=i1j6k9l4
+        "m5n8o2p7"  -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=m5n8o2p7
+        -- Thêm link VIP khác vào đây nếu cần (từ nguồn uy tín như Try Hard Guides, Pro Game Guides)
     },
-    [1234567890] = {}  -- Không có VIP server cho 99 Đêm, thêm nếu có
+    [1234567890] = {} -- Không có VIP server cho 99 Đêm, thêm nếu có
 }
 
 -- Tải thư viện UI Redz V2
@@ -107,7 +108,7 @@ pcall(introAnimation)
 
 -- Tạo menu chính
 local window = MakeWindow({
-    Hub = {Title = "Kirada premium", Animation = "YouTube: Kirada premium"},
+    Hub = {Title = "Kirada VN", Animation = "YouTube: Kirada VN"},
     Key = {KeySystem = false, Title = "Hệ Thống Key", Keys = {"1234"}, Notifi = {Notifications = true, CorrectKey = "Đang chạy script...", Incorrectkey = "Key không đúng", CopyKeyLink = "Đã sao chép vào clipboard"}}
 })
 MinimizeButton({
