@@ -1,4 +1,3 @@
-
 -- Khai báo các service cần thiết
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -47,14 +46,9 @@ pcall(function()
     ContentProvider:PreloadAsync({
         "rbxassetid://75676578090181",
         "rbxassetid://89326205091486",
-        "rbxassetid://8987546731",
-        "rbxassetid://114213622974713"
+        "rbxassetid://8987546731"
     })
 end)
-
--- Quản lý âm thanh
-local currentSound = nil
-local soundPlaying = true
 
 -- Phát âm thanh 8987546731 một lần
 local function playStartupSound()
@@ -65,56 +59,8 @@ local function playStartupSound()
     sound:Play()
     sound.Ended:Connect(function()
         sound:Destroy()
-        -- Bắt đầu phát âm thanh lặp lại
-        playLoopedSound()
     end)
 end
-
--- Phát âm thanh 114213622974713 lặp lại
-local function playLoopedSound()
-    if not soundPlaying then return end
-    currentSound = Instance.new("Sound", SoundService)
-    currentSound.SoundId = "rbxassetid://114213622974713"
-    currentSound.Volume = 1
-    currentSound.PlayOnRemove = false
-    currentSound.Looped = true
-    currentSound:Play()
-end
-
--- Hàm tắt âm thanh
-local function stopAllSounds()
-    soundPlaying = false
-    if currentSound then
-        currentSound:Stop()
-        currentSound:Destroy()
-        currentSound = nil
-    end
-    StarterGui:SetCore("SendNotification", {
-        Title = "Thông Báo",
-        Text = "Đã tắt âm thanh!",
-        Duration = 5
-    })
-end
-
--- Tạo nút tắt nhạc
-local function createMuteButton()
-    local screenGui = Instance.new("ScreenGui", PlayerGui)
-    screenGui.Name = "MuteButtonGui"
-    screenGui.IgnoreGuiInset = true
-    local button = Instance.new("ImageButton", screenGui)
-    button.Size = UDim2.new(0, 40, 0, 40)
-    button.Position = UDim2.new(1, -50, 0, 10) -- Góc trên bên phải
-    button.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-    button.Image = "rbxassetid://89326205091486"
-    button.BorderColor3 = Color3.fromRGB(255, 0, 0)
-    button.BorderSizePixel = 2
-    local uicorner = Instance.new("UICorner", button)
-    uicorner.CornerRadius = UDim.new(0, 5)
-    button.Activated:Connect(stopAllSounds)
-end
-pcall(createMuteButton)
-
--- Bắt đầu phát âm thanh
 pcall(playStartupSound)
 
 -- Intro animation
@@ -194,7 +140,7 @@ local function addButton(tab, name, url)
     })
 end
 
--- Hàm thêm nút chạy script (cho VisionX)
+-- Hàm thêm nút chạy script
 local function addScriptButton(tab, name, url)
     AddButton(tab, {
         Name = name,
@@ -217,32 +163,32 @@ end
 
 -- Tab: Blox Fruit
 local tab1 = MakeTab({Name = "Blox Fruit"})
-addButton(tab1, "W-AZURE", "https://api.luarmor.net/files/v3/loaders/85e904ae1ff30824c1aa007fc7324f8f.lua")
-addButton(tab1, "H4X Script", "https://raw.githubusercontent.com/H4xScripts/Loader/refs/heads/main/loader.lua")
-addButton(tab1, "Nat Hub", "https://get.nathub.xyz/loader")
-addButton(tab1, "Quantum Hub", "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua")
-addButton(tab1, "Speed Hub", "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua")
-addButton(tab1, "OMG HUB Server VIP Free (Get Key)", "https://raw.githubusercontent.com/Omgshit/Scripts/main/MainLoader.lua")
-addButton(tab1, "Giảm Lag", "https://raw.githubusercontent.com/TurboLite/Script/main/FixLag.lua")
-addButton(tab1, "Maru Premium Fake", "https://raw.githubusercontent.com/hnc-roblox/Free/refs/heads/main/MaruHubPremiumFake.HNC%20Roblox.lua")
+addScriptButton(tab1, "W-AZURE", "https://api.luarmor.net/files/v3/loaders/85e904ae1ff30824c1aa007fc7324f8f.lua")
+addScriptButton(tab1, "H4X Script", "https://raw.githubusercontent.com/H4xScripts/Loader/refs/heads/main/loader.lua")
+addScriptButton(tab1, "Nat Hub", "https://get.nathub.xyz/loader")
+addScriptButton(tab1, "Quantum Hub", "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua")
+addScriptButton(tab1, "Speed Hub", "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua")
+addScriptButton(tab1, "OMG HUB Server VIP Free", "https://raw.githubusercontent.com/Omgshit/Scripts/main/MainLoader.lua")
+addScriptButton(tab1, "Giảm Lag", "https://raw.githubusercontent.com/TurboLite/Script/main/FixLag.lua")
+addScriptButton(tab1, "Maru Premium Fake", "https://raw.githubusercontent.com/hnc-roblox/Free/refs/heads/main/MaruHubPremiumFake.HNC%20Roblox.lua")
 
 -- Tab: Hop Server
 local tab2 = MakeTab({Name = "Hop Server"})
-addButton(tab2, "Teddy Hub (Get Key)", "https://raw.githubusercontent.com/Teddyseetink/Haidepzai/refs/heads/main/TEDDYHUB-FREEMIUM")
+addScriptButton(tab2, "Teddy Hub", "https://raw.githubusercontent.com/Teddyseetink/Haidepzai/refs/heads/main/TEDDYHUB-FREEMIUM")
 addScriptButton(tab2, "VisionX", "https://raw.githubusercontent.com/xSync-gg/VisionX/refs/heads/main/Server_Finder.lua")
 
 -- Tab: 99 Đêm
 local tab3 = MakeTab({Name = "99 Đêm"})
-addButton(tab3, "NATHUB (Get Key)", "https://get.nathub.xyz/loader")
-addButton(tab3, "H4X (Get Key)", "https://raw.githubusercontent.com/H4xScripts/Loader/refs/heads/main/loader.lua")
-addButton(tab3, "Speed Hub (Get Key)", "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua")
-addButton(tab3, "Hack Farm Kim Cương", "https://raw.githubusercontent.com/sleepyvill/script/refs/heads/main/99nights.lua")
-addButton(tab3, "Skibidi", "https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/FoxnameHub.lua")
-addButton(tab3, "Ringta", "https://raw.githubusercontent.com/wefwef127382/99daysloader.github.io/refs/heads/main/ringta.lua")
+addScriptButton(tab3, "NATHUB", "https://get.nathub.xyz/loader")
+addScriptButton(tab3, "H4X", "https://raw.githubusercontent.com/H4xScripts/Loader/refs/heads/main/loader.lua")
+addScriptButton(tab3, "Speed Hub", "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua")
+addScriptButton(tab3, "Hack Farm Kim Cương", "https://raw.githubusercontent.com/sleepyvill/script/refs/heads/main/99nights.lua")
+addScriptButton(tab3, "Skibidi", "https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/FoxnameHub.lua")
+addScriptButton(tab3, "Ringta", "https://raw.githubusercontent.com/wefwef127382/99daysloader.github.io/refs/heads/main/ringta.lua")
 
 -- Tab: Hệ Thống Key
 local tab5 = MakeTab({Name = "Hệ Thống Key"})
-addButton(tab5, "Sao Chép Key Speed Hub", "KfHLmNFnuaRmvbkQRwZGXDROXkxhdYAE")
+addButton(tab5, "Sao Chép Key Speed Hub", "KfHLmNFnuaRmvbkQRwZGXDROXkxhdYAE") -- Giữ sao chép key
 
 -- Tab: Idol YTB Hack
 local tab6 = MakeTab({Name = "Idol YTB Hack"})
