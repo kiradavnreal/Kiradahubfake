@@ -47,17 +47,11 @@ pcall(function()
         "rbxassetid://75676578090181",
         "rbxassetid://89326205091486",
         "rbxassetid://8987546731",
-        "rbxassetid://113323391483732",
-        "rbxassetid://113815049685028"
+        "rbxassetid://81829609054965"
     })
 end)
 
 -- Quản lý âm thanh
-local soundList = {
-    "rbxassetid://113323391483732",
-    "rbxassetid://113815049685028"
-}
-local currentSoundIndex = 1
 local currentSound = nil
 local soundPlaying = true
 
@@ -70,25 +64,20 @@ local function playStartupSound()
     sound:Play()
     sound.Ended:Connect(function()
         sound:Destroy()
-        -- Bắt đầu phát các âm thanh lặp lại
-        playLoopedSounds()
+        -- Bắt đầu phát âm thanh lặp lại
+        playLoopedSound()
     end)
 end
 
--- Phát các âm thanh lặp lại
-local function playLoopedSounds()
+-- Phát âm thanh 81829609054965 lặp lại
+local function playLoopedSound()
     if not soundPlaying then return end
     currentSound = Instance.new("Sound", SoundService)
-    currentSound.SoundId = soundList[currentSoundIndex]
+    currentSound.SoundId = "rbxassetid://81829609054965"
     currentSound.Volume = 1
     currentSound.PlayOnRemove = false
-    currentSound.Looped = false
+    currentSound.Looped = true
     currentSound:Play()
-    currentSound.Ended:Connect(function()
-        currentSound:Destroy()
-        currentSoundIndex = currentSoundIndex % #soundList + 1
-        playLoopedSounds()
-    end)
 end
 
 -- Hàm tắt âm thanh
@@ -113,7 +102,7 @@ local function createMuteButton()
     screenGui.IgnoreGuiInset = true
     local button = Instance.new("ImageButton", screenGui)
     button.Size = UDim2.new(0, 40, 0, 40)
-    button.Position = UDim2.new(0, 10, 0, 10)
+    button.Position = UDim2.new(1, -50, 0, 10) -- Góc trên bên phải
     button.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
     button.Image = "rbxassetid://89326205091486"
     button.BorderColor3 = Color3.fromRGB(255, 0, 0)
