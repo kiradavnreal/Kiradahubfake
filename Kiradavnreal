@@ -23,20 +23,6 @@ if not supportedGames[gameId] then
     })
 end
 
--- Danh sách VIP Server Real cho các game (cập nhật tháng 10/2025)
-local vipServers = {
-    [2753915549] = {
-        "a9f3e62f79c8ab40826a8f6e6679a513", -- Link: https://www.roblox.com/share?code=a9f3e62f79c8ab40826a8f6e6679a513&type=Server
-        "f3d8k9p2", -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=f3d8k9p2
-        "a7b2c5d1", -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=a7b2c5d1
-        "e9f4g7h3", -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=e9f4g7h3
-        "i1j6k9l4", -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=i1j6k9l4
-        "m5n8o2p7"  -- Link: https://www.roblox.com/games/2753915549?privateServerLinkCode=m5n8o2p7
-        -- Thêm link VIP khác vào đây nếu cần (từ nguồn uy tín như Try Hard Guides, Pro Game Guides)
-    },
-    [1234567890] = {} -- Không có VIP server cho 99 Đêm, thêm nếu có
-}
-
 -- Tải thư viện UI Redz V2
 pcall(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/daucobonhi/Ui-Redz-V2/refs/heads/main/UiREDzV2.lua"))()
@@ -64,52 +50,29 @@ local function playStartupSound()
 end
 pcall(playStartupSound)
 
--- Intro animation
-local function introAnimation()
-    local screenGui = Instance.new("ScreenGui", PlayerGui)
-    screenGui.Name = "IntroGui"
-    screenGui.IgnoreGuiInset = true
-    local frame = Instance.new("Frame", screenGui)
-    frame.Size = UDim2.new(0, 300, 0, 150)
-    frame.Position = UDim2.new(0.5, -150, 0.5, -75)
-    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    frame.BackgroundTransparency = 0.5
-    local textLabel = Instance.new("TextLabel", frame)
-    textLabel.Size = UDim2.new(1, 0, 0.6, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = "Kirada VN Hack\nTác giả: Kirada & Habato\nNgười kiểm script: Nấm Gamer & Hiếu Hầu Nam\nNgười viết code: Hiếu Gamer & Hiếu TV 124"
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.TextScaled = true
-    local imageLabel = Instance.new("ImageLabel", frame)
-    imageLabel.Size = UDim2.new(0, 100, 0, 100)
-    imageLabel.Position = UDim2.new(0.5, -50, 0.6, 0)
-    imageLabel.BackgroundTransparency = 1
-    imageLabel.Image = "rbxassetid://75676578090181"
-    imageLabel.ImageTransparency = 1
-    local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Sine)
-    local fadeInText = TweenService:Create(textLabel, tweenInfo, {TextTransparency = 0})
-    local fadeInFrame = TweenService:Create(frame, tweenInfo, {BackgroundTransparency = 0.2})
-    local fadeInImage = TweenService:Create(imageLabel, tweenInfo, {ImageTransparency = 0})
-    local fadeOutText = TweenService:Create(textLabel, tweenInfo, {TextTransparency = 1})
-    local fadeOutFrame = TweenService:Create(frame, tweenInfo, {BackgroundTransparency = 1})
-    local fadeOutImage = TweenService:Create(imageLabel, tweenInfo, {ImageTransparency = 1})
-    fadeInText:Play()
-    fadeInFrame:Play()
-    fadeInImage:Play()
-    fadeInText.Completed:Wait()
-    wait(5)
-    fadeOutText:Play()
-    fadeOutFrame:Play()
-    fadeOutImage:Play()
-    fadeOutText.Completed:Wait()
-    screenGui:Destroy()
-end
-pcall(introAnimation)
+-- Thay intro animation bằng thông báo
+pcall(function()
+    StarterGui:SetCore("SendNotification", {
+        Title = "Kirada Premium Hack",
+        Text = "Tác giả: Kirada & Habato\nNgười kiểm script: Nấm Gamer & Hiếu Hầu Nam\nNgười viết code: Hiếu Gamer & Hiếu TV 124",
+        Duration = 10
+    })
+end)
 
--- Tạo menu chính
+-- Tạo menu chính với hệ thống key
 local window = MakeWindow({
-    Hub = {Title = "Kirada VN", Animation = "YouTube: Kirada VN"},
-    Key = {KeySystem = false, Title = "Hệ Thống Key", Keys = {"1234"}, Notifi = {Notifications = true, CorrectKey = "Đang chạy script...", Incorrectkey = "Key không đúng", CopyKeyLink = "Đã sao chép vào clipboard"}}
+    Hub = {Title = "Kirada Premium", Animation = "YouTube: Kirada Premium"},
+    Key = {
+        KeySystem = true,
+        Title = "Hệ Thống Key Premium",
+        Keys = {"kiradagamer"},
+        Notifi = {
+            Notifications = true,
+            CorrectKey = "Key đúng! Đang chạy script Kirada Premium...",
+            Incorrectkey = "Key không đúng! Vui lòng nhập lại hoặc liên hệ Kirada.",
+            CopyKeyLink = "Đã sao chép link key vào clipboard!"
+        }
+    }
 })
 MinimizeButton({
     Image = "rbxassetid://89326205091486",
@@ -218,39 +181,6 @@ local function hopToLowPlayerServer()
     end
 end
 
--- Hàm chuyển đến VIP Server Real (tìm ngẫu nhiên từ danh sách cho mọi game hỗ trợ)
-local function hopToRealVipServer()
-    local success, result = pcall(function()
-        local vipCodes = vipServers[gameId] or {}
-        if #vipCodes == 0 then
-            StarterGui:SetCore("SendNotification", {
-                Title = "Lỗi",
-                Text = "Không hỗ trợ VIP server real cho game này. Vui lòng tìm link VIP thủ công trên Discord hoặc Roblox group!",
-                Duration = 5
-            })
-            return
-        end
-
-        -- Chọn ngẫu nhiên một mã VIP từ danh sách
-        local randomCode = vipCodes[math.random(1, #vipCodes)]
-        StarterGui:SetCore("SendNotification", {
-            Title = "Thông Báo",
-            Text = "Đang chuyển đến VIP Server Real (Code: " .. randomCode .. ")...",
-            Duration = 5
-        })
-        -- Chuyển đến VIP server bằng TeleportToPrivateServer
-        TeleportService:TeleportToPrivateServer(gameId, randomCode, {LocalPlayer})
-    end)
-
-    if not success then
-        StarterGui:SetCore("SendNotification", {
-            Title = "Lỗi",
-            Text = "Không thể chuyển đến VIP Server: " .. tostring(result) .. "\nVui lòng kiểm tra danh sách VIP hoặc thử lại!",
-            Duration = 5
-        })
-    end
-end
-
 -- Tab: Blox Fruit
 local tab1 = MakeTab({Name = "Blox Fruit"})
 addScriptButton(tab1, "W-AZURE", "https://api.luarmor.net/files/v3/loaders/85e904ae1ff30824c1aa007fc7324f8f.lua")
@@ -262,12 +192,11 @@ addScriptButton(tab1, "OMG HUB Server VIP Free", "https://raw.githubusercontent.
 addScriptButton(tab1, "Giảm Lag", "https://raw.githubusercontent.com/TurboLite/Script/main/FixLag.lua")
 addScriptButton(tab1, "Maru Premium Fake", "https://raw.githubusercontent.com/hnc-roblox/Free/refs/heads/main/MaruHubPremiumFake.HNC%20Roblox.lua")
 
--- Tab: Hop Server (Teddy Hub, VisionX, Chuyển Server Ít Người, Chuyển Server VIP Real)
+-- Tab: Hop Server (Teddy Hub, VisionX, Chuyển Server Ít Người)
 local tab2 = MakeTab({Name = "Hop Server"})
 addScriptButton(tab2, "Teddy Hub", "https://raw.githubusercontent.com/Teddyseetink/Haidepzai/refs/heads/main/TEDDYHUB-FREEMIUM")
 addScriptButton(tab2, "VisionX", "https://raw.githubusercontent.com/xSync-gg/VisionX/refs/heads/main/Server_Finder.lua")
 addButton(tab2, "Chuyển Server Ít Người", hopToLowPlayerServer)
-addButton(tab2, "Chuyển Server VIP Real", hopToRealVipServer)
 
 -- Tab: 99 Đêm
 local tab3 = MakeTab({Name = "99 Đêm"})
