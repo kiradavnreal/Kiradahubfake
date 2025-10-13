@@ -65,7 +65,12 @@ local window = MakeWindow({
     Key = {
         KeySystem = true,
         Title = "Hệ Thống Key Premium",
-        Keys = {"kiradagamer"},
+        Keys = {
+            "kiradagamer",
+            "NATHUB_KEY_EXAMPLE_2025",
+            "H4X_KEY_EXAMPLE_2025",
+            "SPEEDHUB_KEY_EXAMPLE_2025"
+        },
         Notifi = {
             Notifications = true,
             CorrectKey = "Key đúng! Đang chạy script Kirada Premium...",
@@ -181,6 +186,29 @@ local function hopToLowPlayerServer()
     end
 end
 
+-- Hàm kiểm tra key (so sánh với danh sách Keys)
+local function checkKey()
+    local keyInput = window:GetKeyInput() -- Giả định UI Redz V2 có hàm lấy input key
+    local validKeys = {
+        "kiradagamer",
+        "NATHUB_KEY_EXAMPLE_2025",
+        "H4X_KEY_EXAMPLE_2025",
+        "SPEEDHUB_KEY_EXAMPLE_2025"
+    }
+    local isValid = false
+    for _, key in ipairs(validKeys) do
+        if keyInput == key then
+            isValid = true
+            break
+        end
+    end
+    StarterGui:SetCore("SendNotification", {
+        Title = "Kiểm Tra Key",
+        Text = isValid and "Key hợp lệ!" or "Key không hợp lệ! Vui lòng lấy key từ link và thử lại.",
+        Duration = 5
+    })
+end
+
 -- Tab: Blox Fruit
 local tab1 = MakeTab({Name = "Blox Fruit"})
 addScriptButton(tab1, "W-AZURE", "https://api.luarmor.net/files/v3/loaders/85e904ae1ff30824c1aa007fc7324f8f.lua")
@@ -209,7 +237,8 @@ addScriptButton(tab3, "Ringta", "https://raw.githubusercontent.com/wefwef127382/
 
 -- Tab: Hệ Thống Key
 local tab5 = MakeTab({Name = "Hệ Thống Key"})
-addButton(tab5, "Sao Chép Key Speed Hub", "KfHLmNFnuaRmvbkQRwZGXDROXkxhdYAE")
+addButton(tab5, "Sao Chép Link Key", "https://anotepad.com/notes/8bki49cm")
+addButton(tab5, "Kiểm Tra Key", checkKey)
 
 -- Tab: Idol YTB Hack
 local tab6 = MakeTab({Name = "Idol YTB Hack"})
