@@ -1,166 +1,435 @@
--- Universal Fly GUI V4 (Với Bypass, Noclip, và Chỉnh Tốc Độ - Tên KiradaChan's Fly Hack)
-local Players = game:GetService("Players")
+-- Kirada Hub Script (Cập nhật)
+-- Tạo bởi Grok
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local PhysicsService = game:GetService("PhysicsService")
 
-local player = Players.LocalPlayer
-local mouse = player:GetMouse()
+-- Thiết lập GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.CoreGui
+ScreenGui.Name = "KiradaHub"
+ScreenGui.ResetOnSpawn = false
 
-local flying = false
-local noclip = false
-local speed = 50
-local playerName = "KiradaChan"  -- Tên hiển thị trong GUI
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 300, 0, 400) -- Menu dọc
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35) -- Màu nền tối hiện đại
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+MainFrame.Active = true
+MainFrame.Draggable = true -- Có thể kéo ngang/dọc
+MainFrame.Visible = false
+MainFrame.BackgroundTransparency = 1
 
--- Bypass cơ bản: Hook __namecall để tránh detection (không 100%)
-local oldNamecall
-oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-    local method = getnamecallmethod()
-    if method == "FireServer" or method == "InvokeServer" then
-        if tostring(self) == "AntiCheat" or tostring(self):find("Detect") then
-            return -- Bỏ qua nếu là anti-cheat event
-        end
+-- Thêm bóng đổ
+local Shadow = Instance.new("ImageLabel")
+Shadow.Size = UDim2.new(1, 20, 1, 20)
+Shadow.Position = UDim2.new(0, -10, 0, -10)
+Shadow.BackgroundTransparency = 1
+Shadow.Image = "rbxassetid://1316045217" -- Hình ảnh bóng đổ
+Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.ImageTransparency = 0.7
+Shadow.ScaleType = Enum.ScaleType.Slice
+Shadow.SliceCenter = Rect.new(10, 10, 10, 10)
+Shadow.Parent = MainFrame
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+-- Thiết lập cuộn
+local ScrollingFrame = Instance.new("ScrollingFrame")
+ScrollingFrame.Size = UDim2.new(1, -20, 1, -20)
+ScrollingFrame.Position = UDim2.new(0, 10, 0, 10)
+ScrollingFrame.BackgroundTransparency = 1
+ScrollingFrame.ScrollBarThickness = 4
+ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 255)
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 450) -- Tăng CanvasSize để cuộn
+ScrollingFrame.Parent = MainFrame
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.FillDirection = Enum.FillDirection.Vertical -- Menu dọc
+UIListLayout.Padding = UDim.new(0, 10)
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.Parent = ScrollingFrame
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(0, 260, 0, 40)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "Kirada Hub"
+TitleLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
+TitleLabel.TextSize = 26
+TitleLabel.Font = Enum.Font.GothamBlack
+TitleLabel.Parent = ScrollingFrame
+
+-- Khung cho tốc độ và nhảy
+local MovementFrame = Instance.new("Frame")
+MovementFrame.Size = UDim2.new(0, 260, 0, 100)
+MovementFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+MovementFrame.BackgroundTransparency = 0.3
+MovementFrame.Parent = ScrollingFrame
+
+local MovementUICorner = Instance.new("UICorner")
+MovementUICorner.CornerRadius = UDim.new(0, 8)
+MovementUICorner.Parent = MovementFrame
+
+local MovementLayout = Instance.new("UIListLayout")
+MovementLayout.FillDirection = Enum.FillDirection.Vertical
+MovementLayout.Padding = UDim.new(0, 10)
+MovementLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+MovementLayout.Parent = MovementFrame
+
+local SpeedLabel = Instance.new("TextLabel")
+SpeedLabel.Size = UDim2.new(0, 240, 0, 20)
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.Text = "Tốc độ (Tối đa 1000):"
+SpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+SpeedLabel.TextSize = 16
+SpeedLabel.Font = Enum.Font.Gotham
+SpeedLabel.Parent = MovementFrame
+
+local SpeedTextBox = Instance.new("TextBox")
+SpeedTextBox.Size = UDim2.new(0, 220, 0, 30)
+SpeedTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+SpeedTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedTextBox.TextSize = 16
+SpeedTextBox.Font = Enum.Font.Gotham
+SpeedTextBox.Text = "16"
+SpeedTextBox.Parent = MovementFrame
+
+local SpeedUICorner = Instance.new("UICorner")
+SpeedUICorner.CornerRadius = UDim.new(0, 6)
+SpeedUICorner.Parent = SpeedTextBox
+
+local JumpLabel = Instance.new("TextLabel")
+JumpLabel.Size = UDim2.new(0, 240, 0, 20)
+JumpLabel.BackgroundTransparency = 1
+JumpLabel.Text = "Nhảy (Tối đa 500):"
+JumpLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+JumpLabel.TextSize = 16
+JumpLabel.Font = Enum.Font.Gotham
+JumpLabel.Parent = MovementFrame
+
+local JumpTextBox = Instance.new("TextBox")
+JumpTextBox.Size = UDim2.new(0, 220, 0, 30)
+JumpTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+JumpTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpTextBox.TextSize = 16
+JumpTextBox.Font = Enum.Font.Gotham
+JumpTextBox.Text = "50"
+JumpTextBox.Parent = MovementFrame
+
+local JumpUICorner = Instance.new("UICorner")
+JumpUICorner.CornerRadius = UDim.new(0, 6)
+JumpUICorner.Parent = JumpTextBox
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 260, 0, 40)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+ToggleButton.Text = "Bật/Tắt Script: TẮT"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 18
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.Parent = ScrollingFrame
+
+local ToggleUICorner = Instance.new("UICorner")
+ToggleUICorner.CornerRadius = UDim.new(0, 6)
+ToggleUICorner.Parent = ToggleButton
+
+local RunNoclipButton = Instance.new("TextButton")
+RunNoclipButton.Size = UDim2.new(0, 260, 0, 40)
+RunNoclipButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+RunNoclipButton.Text = "Chạy xuyên tường"
+RunNoclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RunNoclipButton.TextSize = 18
+RunNoclipButton.Font = Enum.Font.GothamBold
+RunNoclipButton.Parent = ScrollingFrame
+
+local RunNoclipUICorner = Instance.new("UICorner")
+RunNoclipUICorner.CornerRadius = UDim.new(0, 6)
+RunNoclipUICorner.Parent = RunNoclipButton
+
+local RunNormalButton = Instance.new("TextButton")
+RunNormalButton.Size = UDim2.new(0, 260, 0, 40)
+RunNormalButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+RunNormalButton.Text = "Chạy không xuyên"
+RunNormalButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RunNormalButton.TextSize = 18
+RunNormalButton.Font = Enum.Font.GothamBold
+RunNormalButton.Parent = ScrollingFrame
+
+local RunNormalUICorner = Instance.new("UICorner")
+RunNormalUICorner.CornerRadius = UDim.new(0, 6)
+RunNormalUICorner.Parent = RunNormalButton
+
+local StopRunButton = Instance.new("TextButton")
+StopRunButton.Size = UDim2.new(0, 260, 0, 40)
+StopRunButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+StopRunButton.Text = "Tắt chạy"
+StopRunButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+StopRunButton.TextSize = 18
+StopRunButton.Font = Enum.Font.GothamBold
+StopRunButton.Parent = ScrollingFrame
+
+local StopRunUICorner = Instance.new("UICorner")
+StopRunUICorner.CornerRadius = UDim.new(0, 6)
+StopRunUICorner.Parent = StopRunButton
+
+local EspButton = Instance.new("TextButton")
+EspButton.Size = UDim2.new(0, 260, 0, 40)
+EspButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+EspButton.Text = "Bật định vị người chơi"
+EspButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+EspButton.TextSize = 18
+EspButton.Font = Enum.Font.GothamBold
+EspButton.Parent = ScrollingFrame
+
+local EspUICorner = Instance.new("UICorner")
+EspUICorner.CornerRadius = UDim.new(0, 6)
+EspUICorner.Parent = EspButton
+
+local ToggleMenuButton = Instance.new("TextButton")
+ToggleMenuButton.Size = UDim2.new(0, 60, 0, 60)
+ToggleMenuButton.Position = UDim2.new(0, 10, 0, 10)
+ToggleMenuButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+ToggleMenuButton.Text = "☰"
+ToggleMenuButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleMenuButton.TextSize = 28
+ToggleMenuButton.Font = Enum.Font.GothamBold
+ToggleMenuButton.Parent = ScreenGui
+
+local ToggleMenuUICorner = Instance.new("UICorner")
+ToggleMenuUICorner.CornerRadius = UDim.new(0, 30)
+ToggleMenuUICorner.Parent = ToggleMenuButton
+
+-- Biến
+local isScriptEnabled = false
+local originalSpeed = humanoid.WalkSpeed
+local originalJump = humanoid.JumpPower
+local noclipEnabled = false
+local espEnabled = false
+local connections = {}
+
+-- Animation cho Menu
+local function toggleMenu()
+    if MainFrame.Visible then
+        local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+        local tween = TweenService:Create(MainFrame, tweenInfo, {BackgroundTransparency = 1, Size = UDim2.new(0, 300, 0, 0)})
+        tween:Play()
+        wait(0.3)
+        MainFrame.Visible = false
+    else
+        MainFrame.Visible = true
+        MainFrame.Size = UDim2.new(0, 300, 0, 0)
+        local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        local tween = TweenService:Create(MainFrame, tweenInfo, {BackgroundTransparency = 0, Size = UDim2.new(0, 300, 0, 400)})
+        tween:Play()
     end
-    return oldNamecall(self, ...)
-end)
-
--- Hàm tạo fly
-local function createFly()
-    local char = player.Character or player.CharacterAdded:Wait()
-    local humanoidRootPart = char:WaitForChild("HumanoidRootPart")
-    local humanoid = char:WaitForChild("Humanoid")
-    
-    local bv = Instance.new("BodyVelocity")
-    bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)  -- Tăng lực để bypass một số check
-    bv.Velocity = Vector3.new(0, 0, 0)
-    bv.Parent = humanoidRootPart
-    
-    local bg = Instance.new("BodyGyro")
-    bg.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
-    bg.CFrame = humanoidRootPart.CFrame
-    bg.Parent = humanoidRootPart
-    
-    humanoid.PlatformStand = true  -- Bypass fall damage
-    
-    return bv, bg
 end
 
--- Hàm toggle noclip
-local function toggleNoclip()
-    local char = player.Character
-    if char then
-        for _, part in ipairs(char:GetDescendants()) do
+-- Hiệu ứng hover cho nút
+local function addHoverEffect(button)
+    local originalColor = button.BackgroundColor3
+    button.MouseEnter:Connect(function()
+        local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        local tween = TweenService:Create(button, tweenInfo, {BackgroundColor3 = originalColor:Lerp(Color3.fromRGB(255, 255, 255), 0.2)})
+        tween:Play()
+    end)
+    button.MouseLeave:Connect(function()
+        local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        local tween = TweenService:Create(button, tweenInfo, {BackgroundColor3 = originalColor})
+        tween:Play()
+    end)
+end
+
+addHoverEffect(ToggleButton)
+addHoverEffect(RunNoclipButton)
+addHoverEffect(RunNormalButton)
+addHoverEffect(StopRunButton)
+addHoverEffect(EspButton)
+addHoverEffect(ToggleMenuButton)
+
+local function toggleScript()
+    isScriptEnabled = not isScriptEnabled
+    ToggleButton.Text = "Bật/Tắt Script: " .. (isScriptEnabled and "BẬT" or "TẮT")
+    ToggleButton.BackgroundColor3 = isScriptEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(100, 100, 255)
+    
+    if not isScriptEnabled then
+        humanoid.WalkSpeed = originalSpeed
+        humanoid.JumpPower = originalJump
+        disableNoclip()
+        disableEsp()
+    end
+end
+
+local function validateSpeed()
+    local speed = tonumber(SpeedTextBox.Text)
+    if speed then
+        speed = math.clamp(speed, 0, 1000)
+        SpeedTextBox.Text = tostring(speed)
+        return speed
+    else
+        SpeedTextBox.Text = tostring(originalSpeed)
+        return originalSpeed
+    end
+end
+
+local function validateJump()
+    local jump = tonumber(JumpTextBox.Text)
+    if jump then
+        jump = math.clamp(jump, 0, 500)
+        JumpTextBox.Text = tostring(jump)
+        return jump
+    else
+        JumpTextBox.Text = tostring(originalJump)
+        return originalJump
+    end
+end
+
+local function enableNoclip()
+    if noclipEnabled then return end
+    noclipEnabled = true
+    local function noclipLoop()
+        for _, part in pairs(character:GetDescendants()) do
             if part:IsA("BasePart") then
-                if noclip then
-                    PhysicsService:SetPartCollisionGroup(part, "NoClipGroup")
-                else
-                    PhysicsService:SetPartCollisionGroup(part, "Default")
-                end
+                part.CanCollide = false
             end
         end
     end
+    connections.noclip = game:GetService("RunService").Stepped:Connect(noclipLoop)
 end
 
--- Tạo CollisionGroup cho noclip (nếu chưa có)
-if not PhysicsService:IsCollisionGroupRegistered("NoClipGroup") then
-    PhysicsService:RegisterCollisionGroup("NoClipGroup")
-    PhysicsService:CollisionGroupSetCollidable("NoClipGroup", "Default", false)
-    PhysicsService:CollisionGroupSetCollidable("NoClipGroup", "NoClipGroup", false)
+local function disableNoclip()
+    if not noclipEnabled then return end
+    noclipEnabled = false
+    if connections.noclip then
+        connections.noclip:Disconnect()
+        connections.noclip = nil
+    end
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = true
+        end
+    end
 end
 
--- Tạo GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = player.PlayerGui
-local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 200, 0, 200)
-frame.Position = UDim2.new(0, 10, 0, 10)
-frame.BackgroundColor3 = Color3.new(0, 0, 0)
-frame.BackgroundTransparency = 0.5
-frame.Visible = false
+local function enableEsp()
+    if espEnabled then return end
+    espEnabled = true
+    local function highlightPlayer(plr)
+        if plr ~= player and plr.Character then
+            local highlight = Instance.new("Highlight")
+            highlight.FillColor = Color3.fromRGB(255, 0, 0)
+            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            highlight.FillTransparency = 0.5
+            highlight.OutlineTransparency = 0
+            highlight.Parent = plr.Character
+            connections[plr.Name] = highlight
+        end
+    end
+    for _, plr in pairs(game.Players:GetPlayers()) do
+        highlightPlayer(plr)
+    end
+    connections.playerAdded = game.Players.PlayerAdded:Connect(highlightPlayer)
+end
 
-local nameLabel = Instance.new("TextLabel", frame)
-nameLabel.Size = UDim2.new(1, 0, 0.2, 0)
-nameLabel.Text = playerName .. "'s Fly Hack"
-nameLabel.TextColor3 = Color3.new(1, 1, 1)
-nameLabel.BackgroundTransparency = 1
+local function disableEsp()
+    if not espEnabled then return end
+    espEnabled = false
+    for _, plr in pairs(game.Players:GetPlayers()) do
+        if plr ~= player and plr.Character and connections[plr.Name] then
+            connections[plr.Name]:Destroy()
+            connections[plr.Name] = nil
+        end
+    end
+    if connections.playerAdded then
+        connections.playerAdded:Disconnect()
+        connections.playerAdded = nil
+    end
+end
 
-local speedLabel = Instance.new("TextLabel", frame)
-speedLabel.Size = UDim2.new(1, 0, 0.2, 0)
-speedLabel.Position = UDim2.new(0, 0, 0.2, 0)
-speedLabel.Text = "Speed: " .. speed
-speedLabel.TextColor3 = Color3.new(1, 1, 1)
-speedLabel.BackgroundTransparency = 1
+-- Sự kiện
+ToggleMenuButton.MouseButton1Click:Connect(toggleMenu)
 
-local upButton = Instance.new("TextButton", frame)
-upButton.Size = UDim2.new(0.5, 0, 0.15, 0)
-upButton.Position = UDim2.new(0, 0, 0.4, 0)
-upButton.Text = "+"
-upButton.TextColor3 = Color3.new(1, 1, 1)
-upButton.BackgroundColor3 = Color3.new(0, 0.5, 0)
+ToggleButton.MouseButton1Click:Connect(toggleScript)
 
-local downButton = Instance.new("TextButton", frame)
-downButton.Size = UDim2.new(0.5, 0, 0.15, 0)
-downButton.Position = UDim2.new(0.5, 0, 0.4, 0)
-downButton.Text = "-"
-downButton.TextColor3 = Color3.new(1, 1, 1)
-downButton.BackgroundColor3 = Color3.new(0.5, 0, 0)
-
-local noclipLabel = Instance.new("TextLabel", frame)
-noclipLabel.Size = UDim2.new(1, 0, 0.2, 0)
-noclipLabel.Position = UDim2.new(0, 0, 0.55, 0)
-noclipLabel.Text = "Noclip: " .. (noclip and "ON" or "OFF")
-noclipLabel.TextColor3 = Color3.new(1, 1, 1)
-noclipLabel.BackgroundTransparency = 1
-
--- Xử lý nút tăng/giảm tốc độ
-upButton.MouseButton1Click:Connect(function()
-    speed = speed + 10
-    speedLabel.Text = "Speed: " .. speed
+SpeedTextBox.FocusLost:Connect(function()
+    if isScriptEnabled then
+        humanoid.WalkSpeed = validateSpeed()
+    end
 end)
 
-downButton.MouseButton1Click:Connect(function()
-    speed = math.max(10, speed - 10)
-    speedLabel.Text = "Speed: " .. speed
+JumpTextBox.FocusLost:Connect(function()
+    if isScriptEnabled then
+        humanoid.JumpPower = validateJump()
+    end
 end)
 
--- Bật/tắt fly và noclip
+RunNoclipButton.MouseButton1Click:Connect(function()
+    if isScriptEnabled then
+        humanoid.WalkSpeed = validateSpeed()
+        humanoid.JumpPower = validateJump()
+        enableNoclip()
+    end
+end)
+
+RunNormalButton.MouseButton1Click:Connect(function()
+    if isScriptEnabled then
+        humanoid.WalkSpeed = validateSpeed()
+        humanoid.JumpPower = validateJump()
+        disableNoclip()
+    end
+end)
+
+StopRunButton.MouseButton1Click:Connect(function()
+    if isScriptEnabled then
+        humanoid.WalkSpeed = originalSpeed
+        humanoid.JumpPower = originalJump
+        disableNoclip()
+    end
+end)
+
+EspButton.MouseButton1Click:Connect(function()
+    if isScriptEnabled then
+        if espEnabled then
+            disableEsp()
+            EspButton.Text = "Bật định vị người chơi"
+            EspButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+        else
+            enableEsp()
+            EspButton.Text = "Tắt định vị người chơi"
+            EspButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        end
+    end
+end)
+
+-- Phím tắt
 UserInputService.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.E then
-        flying = not flying
-        if flying then
-            createFly()
-            frame.Visible = true
-        else
-            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local hrp = player.Character.HumanoidRootPart
-                if hrp:FindFirstChildOfClass("BodyVelocity") then
-                    hrp:FindFirstChildOfClass("BodyVelocity"):Destroy()
-                end
-                if hrp:FindFirstChildOfClass("BodyGyro") then
-                    hrp:FindFirstChildOfClass("BodyGyro"):Destroy()
-                end
-            end
-            player.Character.Humanoid.PlatformStand = false
-            frame.Visible = false
-        end
-    elseif input.KeyCode == Enum.KeyCode.F then  -- Nhấn F để toggle noclip
-        noclip = not noclip
-        toggleNoclip()
-        noclipLabel.Text = "Noclip: " .. (noclip and "ON" or "OFF")
+        toggleScript()
+    elseif input.KeyCode == Enum.KeyCode.Q then
+        toggleMenu()
     end
 end)
 
--- Loop điều khiển bay và noclip
-RunService.Heartbeat:Connect(function()
-    if flying and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local bv = player.Character.HumanoidRootPart:FindFirstChildOfClass("BodyVelocity")
-        if bv then
-            local cam = workspace.CurrentCamera
-            local dir = cam.CFrame.LookVector
-            bv.Velocity = Vector3.new(dir.X * speed, 0, dir.Z * speed)
-        end
-    end
-    if noclip then
-        toggleNoclip()  -- Giữ noclip active mỗi frame
+-- Xử lý khi nhân vật reset
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoid = character:WaitForChild("Humanoid")
+    rootPart = character:WaitForChild("HumanoidRootPart")
+    originalSpeed = humanoid.WalkSpeed
+    originalJump = humanoid.JumpPower
+    if isScriptEnabled then
+        humanoid.WalkSpeed = validateSpeed()
+        humanoid.JumpPower = validateJump()
+    else
+        disableNoclip()
+        disableEsp()
     end
 end)
+
+print("Kirada Hub cập nhật và khởi động!")
