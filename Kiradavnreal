@@ -1,484 +1,226 @@
--- Khởi tạo dịch vụ và thông tin người chơi
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local rootPart = character:WaitForChild("HumanoidRootPart")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
+-- Kiradabeta Script
+-- Updated with High Jump feature and compact input fields
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
 local RunService = game:GetService("RunService")
 
--- Biến toàn cục
-local isScriptEnabled = false
-local originalSpeed = humanoid.WalkSpeed
-local originalJump = humanoid.JumpPower
-local noclipEnabled = false
-local espEnabled = false
-local waterWalkEnabled = false
-local connections = {}
--- Thiết lập ScreenGui
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "KiradaHub"
-ScreenGui.ResetOnSpawn = false
+-- Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "KiradaBeta"
+ScreenGui.Parent = game.CoreGui
 
--- MainFrame
-local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 400, 0, 250)
-MainFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Visible = false
-MainFrame.BackgroundTransparency = 0.1
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+-- Create Main Frame (Horizontal Menu)
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 600, 0, 50)
+MainFrame.Position = UDim2.new(0.5, -300, 0, 20)
+MainFrame.BackgroundColor3 = Color3.new(0, 0, 0) -- Black
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
 
--- Hiệu ứng bóng
-local Shadow = Instance.new("ImageLabel", MainFrame)
-Shadow.Size = UDim2.new(1, 20, 1, 20)
-Shadow.Position = UDim2.new(0, -10, 0, -10)
-Shadow.BackgroundTransparency = 1
-Shadow.Image = "rbxassetid://1316045217"
-Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-Shadow.ImageTransparency = 0.6
-Shadow.ScaleType = Enum.ScaleType.Slice
-Shadow.SliceCenter = Rect.new(10, 10, 10, 10)
+-- UIListLayout for horizontal buttons
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.FillDirection = Enum.FillDirection.Horizontal
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+UIListLayout.Padding = UDim.new(0, 10)
+UIListLayout.Parent = MainFrame
 
--- Nút toggle menu
-local ToggleMenuButton = Instance.new("TextButton", ScreenGui)
-ToggleMenuButton.Size = UDim2.new(0, 50, 0, 50)
-ToggleMenuButton.Position = UDim2.new(0, 10, 0, 10)
-ToggleMenuButton.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
-ToggleMenuButton.Text = "☰"
-ToggleMenuButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-ToggleMenuButton.TextSize = 24
-ToggleMenuButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", ToggleMenuButton).CornerRadius = UDim.new(0, 25)
--- Tab Bar
-local TabBar = Instance.new("Frame", MainFrame)
-TabBar.Size = UDim2.new(1, 0, 0, 30)
-TabBar.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-local TabBarLayout = Instance.new("UIListLayout", TabBar)
-TabBarLayout.FillDirection = Enum.FillDirection.Horizontal
-TabBarLayout.Padding = UDim.new(0, 5)
+-- Function to create buttons
+local function CreateButton(name, callback)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0, 100, 0, 40)
+    Button.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    Button.Text = name
+    Button.TextColor3 = Color3.new(1, 1, 1) -- White
+    Button.TextSize = 14
+    Button.Parent = MainFrame
+    Button.MouseButton1Click:Connect(callback)
+    return Button
+end
 
-local Tab1Button = Instance.new("TextButton", TabBar)
-Tab1Button.Size = UDim2.new(0, 100, 1, 0)
-Tab1Button.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
-Tab1Button.Text = "Features"
-Tab1Button.TextColor3 = Color3.fromRGB(0, 0, 0)
-Tab1Button.TextSize = 14
-Tab1Button.Font = Enum.Font.GothamBold
-Instance.new("UICorner", Tab1Button).CornerRadius = UDim.new(0, 6)
+-- Speed Hack Frame
+local SpeedFrame = Instance.new("Frame")
+SpeedFrame.Size = UDim2.new(0, 150, 0, 80)
+SpeedFrame.Position = UDim2.new(0.5, -75, 0.5, -40)
+SpeedFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+SpeedFrame.BorderSizePixel = 0
+SpeedFrame.Visible = false
+SpeedFrame.Parent = ScreenGui
 
-local Tab2Button = Instance.new("TextButton", TabBar)
-Tab2Button.Size = UDim2.new(0, 100, 1, 0)
-Tab2Button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-Tab2Button.Text = "Scripts"
-Tab2Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-Tab2Button.TextSize = 14
-Tab2Button.Font = Enum.Font.GothamBold
-Instance.new("UICorner", Tab2Button).CornerRadius = UDim.new(0, 6)
-
--- Content Frame
-local ContentFrame = Instance.new("Frame", MainFrame)
-ContentFrame.Size = UDim2.new(1, 0, 1, -30)
-ContentFrame.Position = UDim2.new(0, 0, 0, 30)
-ContentFrame.BackgroundTransparency = 1
--- Tab 1: Features
-local FeaturesScrolling = Instance.new("ScrollingFrame", ContentFrame)
-FeaturesScrolling.Size = UDim2.new(1, 0, 1, 0)
-FeaturesScrolling.BackgroundTransparency = 1
-FeaturesScrolling.ScrollBarThickness = 3
-FeaturesScrolling.ScrollBarImageColor3 = Color3.fromRGB(255, 193, 7)
-FeaturesScrolling.CanvasSize = UDim2.new(2, 0, 0, 0)
-
-local FeaturesLayout = Instance.new("UIListLayout", FeaturesScrolling)
-FeaturesLayout.FillDirection = Enum.FillDirection.Horizontal
-FeaturesLayout.Padding = UDim.new(0, 8)
-FeaturesLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-
-local TitleLabel = Instance.new("TextLabel", FeaturesScrolling)
-TitleLabel.Size = UDim2.new(0, 120, 0, 35)
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "Kirada Hub"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 193, 7)
-TitleLabel.TextSize = 22
-TitleLabel.Font = Enum.Font.GothamBlack
-
-local MovementFrame = Instance.new("Frame", FeaturesScrolling)
-MovementFrame.Size = UDim2.new(0, 150, 0, 90)
-MovementFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-MovementFrame.BackgroundTransparency = 0.2
-Instance.new("UICorner", MovementFrame).CornerRadius = UDim.new(0, 8)
-
-local MovementLayout = Instance.new("UIListLayout", MovementFrame)
-MovementLayout.FillDirection = Enum.FillDirection.Vertical
-MovementLayout.Padding = UDim.new(0, 8)
-MovementLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-local SpeedLabel = Instance.new("TextLabel", MovementFrame)
-SpeedLabel.Size = UDim2.new(0, 130, 0, 18)
+local SpeedLabel = Instance.new("TextLabel")
+SpeedLabel.Size = UDim2.new(1, 0, 0, 20)
+SpeedLabel.Text = "Custom Speed"
+SpeedLabel.TextColor3 = Color3.new(1, 1, 1)
 SpeedLabel.BackgroundTransparency = 1
-SpeedLabel.Text = "Tốc độ (Max 1000):"
-SpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-SpeedLabel.TextSize = 14
-SpeedLabel.Font = Enum.Font.Gotham
+SpeedLabel.TextSize = 12
+SpeedLabel.Parent = SpeedFrame
 
-local SpeedTextBox = Instance.new("TextBox", MovementFrame)
-SpeedTextBox.Size = UDim2.new(0, 120, 0, 25)
-SpeedTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-SpeedTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedTextBox.TextSize = 14
-SpeedTextBox.Font = Enum.Font.Gotham
-SpeedTextBox.Text = "16"
-Instance.new("UICorner", SpeedTextBox).CornerRadius = UDim.new(0, 6)
+local SpeedTextBox = Instance.new("TextBox")
+SpeedTextBox.Size = UDim2.new(1, 0, 0, 20)
+SpeedTextBox.Position = UDim2.new(0, 0, 0, 20)
+SpeedTextBox.Text = "16" -- Default speed
+SpeedTextBox.TextColor3 = Color3.new(1, 1, 1)
+SpeedTextBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+SpeedTextBox.TextSize = 12
+SpeedTextBox.Parent = SpeedFrame
 
-local JumpLabel = Instance.new("TextLabel", MovementFrame)
-JumpLabel.Size = UDim2.new(0, 130, 0, 18)
+local ApplySpeedButton = Instance.new("TextButton")
+ApplySpeedButton.Size = UDim2.new(1, 0, 0, 20)
+ApplySpeedButton.Position = UDim2.new(0, 0, 0, 40)
+ApplySpeedButton.Text = "Apply"
+ApplySpeedButton.TextColor3 = Color3.new(1, 1, 1)
+ApplySpeedButton.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+ApplySpeedButton.TextSize = 12
+ApplySpeedButton.Parent = SpeedFrame
+ApplySpeedButton.MouseButton1Click:Connect(function()
+    local speed = tonumber(SpeedTextBox.Text)
+    if speed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = speed -- No limit
+    end
+    SpeedFrame.Visible = false
+end)
+
+-- High Jump Frame
+local JumpFrame = Instance.new("Frame")
+JumpFrame.Size = UDim2.new(0, 150, 0, 80)
+JumpFrame.Position = UDim2.new(0.5, -75, 0.5, -40)
+JumpFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+JumpFrame.BorderSizePixel = 0
+JumpFrame.Visible = false
+JumpFrame.Parent = ScreenGui
+
+local JumpLabel = Instance.new("TextLabel")
+JumpLabel.Size = UDim2.new(1, 0, 0, 20)
+JumpLabel.Text = "Custom Jump Height"
+JumpLabel.TextColor3 = Color3.new(1, 1, 1)
 JumpLabel.BackgroundTransparency = 1
-JumpLabel.Text = "Nhảy (Max 500):"
-JumpLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-JumpLabel.TextSize = 14
-JumpLabel.Font = Enum.Font.Gotham
+JumpLabel.TextSize = 12
+JumpLabel.Parent = JumpFrame
 
-local JumpTextBox = Instance.new("TextBox", MovementFrame)
-JumpTextBox.Size = UDim2.new(0, 120, 0, 25)
-JumpTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-JumpTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-JumpTextBox.TextSize = 14
-JumpTextBox.Font = Enum.Font.Gotham
-JumpTextBox.Text = "50"
-Instance.new("UICorner", JumpTextBox).CornerRadius = UDim.new(0, 6)
+local JumpTextBox = Instance.new("TextBox")
+JumpTextBox.Size = UDim2.new(1, 0, 0, 20)
+JumpTextBox.Position = UDim2.new(0, 0, 0, 20)
+JumpTextBox.Text = "50" -- Default jump height
+JumpTextBox.TextColor3 = Color3.new(1, 1, 1)
+JumpTextBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+JumpTextBox.TextSize = 12
+JumpTextBox.Parent = JumpFrame
 
-local ToggleButton = Instance.new("TextButton", FeaturesScrolling)
-ToggleButton.Size = UDim2.new(0, 120, 0, 35)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
-ToggleButton.Text = "Bật/Tắt Script: TẮT"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.TextSize = 16
-ToggleButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0, 6)
-
-local RunNoclipButton = Instance.new("TextButton", FeaturesScrolling)
-RunNoclipButton.Size = UDim2.new(0, 120, 0, 35)
-RunNoclipButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-RunNoclipButton.Text = "Chạy xuyên tường"
-RunNoclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-RunNoclipButton.TextSize = 16
-RunNoclipButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", RunNoclipButton).CornerRadius = UDim.new(0, 6)
-
-local RunNormalButton = Instance.new("TextButton", FeaturesScrolling)
-RunNormalButton.Size = UDim2.new(0, 120, 0, 35)
-RunNormalButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-RunNormalButton.Text = "Chạy không xuyên"
-RunNormalButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-RunNormalButton.TextSize = 16
-RunNormalButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", RunNormalButton).CornerRadius = UDim.new(0, 6)
-
-local StopRunButton = Instance.new("TextButton", FeaturesScrolling)
-StopRunButton.Size = UDim2.new(0, 120, 0, 35)
-StopRunButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-StopRunButton.Text = "Tắt chạy"
-StopRunButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-StopRunButton.TextSize = 16
-StopRunButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", StopRunButton).CornerRadius = UDim.new(0, 6)
-
-local WaterWalkButton = Instance.new("TextButton", FeaturesScrolling)
-WaterWalkButton.Size = UDim2.new(0, 120, 0, 35)
-WaterWalkButton.BackgroundColor3 = Color3.fromRGB(0, 188, 212)
-WaterWalkButton.Text = "Đi trên nước: TẮT"
-WaterWalkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-WaterWalkButton.TextSize = 16
-WaterWalkButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", WaterWalkButton).CornerRadius = UDim.new(0, 6)
-
-local EspButton = Instance.new("TextButton", FeaturesScrolling)
-EspButton.Size = UDim2.new(0, 120, 0, 35)
-EspButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-EspButton.Text = "ESP: TẮT"
-EspButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-EspButton.TextSize = 16
-EspButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", EspButton).CornerRadius = UDim.new(0, 6)-- Tab 2: Scripts
-local ScriptsFrame = Instance.new("Frame", ContentFrame)
-ScriptsFrame.Size = UDim2.new(1, 0, 1, 0)
-ScriptsFrame.BackgroundTransparency = 1
-ScriptsFrame.Visible = false
-
-local ScriptsLayout = Instance.new("UIListLayout", ScriptsFrame)
-ScriptsLayout.FillDirection = Enum.FillDirection.Vertical
-ScriptsLayout.Padding = UDim.new(0, 8)
-ScriptsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-local RunKiradaPremiumButton = Instance.new("TextButton", ScriptsFrame)
-RunKiradaPremiumButton.Size = UDim2.new(0, 180, 0, 35)
-RunKiradaPremiumButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-RunKiradaPremiumButton.Text = "Run Kirada Premium"
-RunKiradaPremiumButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-RunKiradaPremiumButton.TextSize = 16
-RunKiradaPremiumButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", RunKiradaPremiumButton).CornerRadius = UDim.new(0, 6)
-
-local RunKiradaYeuBanButton = Instance.new("TextButton", ScriptsFrame)
-RunKiradaYeuBanButton.Size = UDim2.new(0, 180, 0, 35)
-RunKiradaYeuBanButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-RunKiradaYeuBanButton.Text = "Run Kirada Yeu Ban"
-RunKiradaYeuBanButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-RunKiradaYeuBanButton.TextSize = 16
-RunKiradaYeuBanButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", RunKiradaYeuBanButton).CornerRadius = UDim.new(0, 6)-- Hàm toggle menu
-local function toggleMenu()
-    local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quad, MainFrame.Visible and Enum.EasingDirection.In or Enum.EasingDirection.Out)
-    local targetSize = MainFrame.Visible and UDim2.new(0, 400, 0, 0) or UDim2.new(0, 400, 0, 250)
-    local targetTransparency = MainFrame.Visible and 1 or 0.1
-    TweenService:Create(MainFrame, tweenInfo, {Size = targetSize, BackgroundTransparency = targetTransparency}):Play()
-    wait(0.4)
-    MainFrame.Visible = not MainFrame.Visible
-end
-
--- Hàm hiệu ứng hover
-local function addHoverEffect(button)
-    local originalColor = button.BackgroundColor3
-    button.MouseEnter:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {BackgroundColor3 = originalColor:Lerp(Color3.fromRGB(255, 255, 255), 0.2)}):Play()
-    end)
-    button.MouseLeave:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {BackgroundColor3 = originalColor}):Play()
-    end)
-end
-
--- Áp dụng hiệu ứng hover cho tất cả nút
-for _, button in pairs({ToggleButton, RunNoclipButton, RunNormalButton, StopRunButton, WaterWalkButton, EspButton, RunKiradaPremiumButton, RunKiradaYeuBanButton, ToggleMenuButton, Tab1Button, Tab2Button}) do
-    addHoverEffect(button)
-end
-
--- Hàm chuyển đổi tab
-local function showTab(tab, button1, button2)
-    FeaturesScrolling.Visible = (tab == 1)
-    ScriptsFrame.Visible = (tab == 2)
-    button1.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
-    button2.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-end
-
--- Hàm xác thực tốc độ
-local function validateSpeed()
-    local speed = tonumber(SpeedTextBox.Text) or originalSpeed
-    speed = math.clamp(speed, 0, 1000)
-    SpeedTextBox.Text = tostring(speed)
-    return speed
-end
-
--- Hàm xác thực nhảy
-local function validateJump()
-    local jump = tonumber(JumpTextBox.Text) or originalJump
-    jump = math.clamp(jump, 0, 500)
-    JumpTextBox.Text = tostring(jump)
-    return jump
-end-- Hàm bật/tắt script
-local function toggleScript()
-    isScriptEnabled = not isScriptEnabled
-    ToggleButton.Text = "Bật/Tắt Script: " .. (isScriptEnabled and "BẬT" or "TẮT")
-    ToggleButton.BackgroundColor3 = isScriptEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(100, 100, 255)
-    if not isScriptEnabled then
-        humanoid.WalkSpeed = originalSpeed
-        humanoid.JumpPower = originalJump
-        disableNoclip()
-        disableEsp()
-        disableWaterWalk()
+local ApplyJumpButton = Instance.new("TextButton")
+ApplyJumpButton.Size = UDim2.new(1, 0, 0, 20)
+ApplyJumpButton.Position = UDim2.new(0, 0, 0, 40)
+ApplyJumpButton.Text = "Apply"
+ApplyJumpButton.TextColor3 = Color3.new(1, 1, 1)
+ApplyJumpButton.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+ApplyJumpButton.TextSize = 12
+ApplyJumpButton.Parent = JumpFrame
+ApplyJumpButton.MouseButton1Click:Connect(function()
+    local jumpPower = tonumber(JumpTextBox.Text)
+    if jumpPower and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.JumpPower = jumpPower -- No limit
+        LocalPlayer.Character.Humanoid.JumpHeight = jumpPower / 2 -- Adjust for Roblox's JumpHeight
     end
-end
+    JumpFrame.Visible = false
+end)
 
--- Hàm noclip
-local function enableNoclip()
-    if noclipEnabled then return end
-    noclipEnabled = true
-    connections.noclip = RunService.Stepped:Connect(function()
-        for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then part.CanCollide = false end
-        end
-    end)
-end
+-- Teleport Frame
+local TeleportFrame = Instance.new("Frame")
+TeleportFrame.Size = UDim2.new(0, 150, 0, 80)
+TeleportFrame.Position = UDim2.new(0.5, -75, 0.5, -40)
+TeleportFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+TeleportFrame.BorderSizePixel = 0
+TeleportFrame.Visible = false
+TeleportFrame.Parent = ScreenGui
 
-local function disableNoclip()
-    if not noclipEnabled then return end
-    noclipEnabled = false
-    if connections.noclip then
-        connections.noclip:Disconnect()
-        connections.noclip = nil
-    end
-    for _, part in pairs(character:GetDescendants()) do
-        if part:IsA("BasePart") then part.CanCollide = true end
-    end
-end
+local TpLabel = Instance.new("TextLabel")
+TpLabel.Size = UDim2.new(1, 0, 0, 20)
+TpLabel.Text = "Player UserId"
+TpLabel.TextColor3 = Color3.new(1, 1, 1)
+TpLabel.BackgroundTransparency = 1
+TpLabel.TextSize = 12
+TpLabel.Parent = TeleportFrame
 
--- Hàm đi trên nước
-local function enableWaterWalk()
-    if waterWalkEnabled then return end
-    waterWalkEnabled = true
-    connections.waterWalk = RunService.Stepped:Connect(function()
-        if character and humanoid then
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
-            if humanoid:GetState() == Enum.HumanoidStateType.Swimming then
-                rootPart.Velocity = Vector3.new(rootPart.Velocity.X, 0, rootPart.Velocity.Z)
-                rootPart.Position = Vector3.new(rootPart.Position.X, rootPart.Position.Y + 0.1, rootPart.Position.Z)
+local TpTextBox = Instance.new("TextBox")
+TpTextBox.Size = UDim2.new(1, 0, 0, 20)
+TpTextBox.Position = UDim2.new(0, 0, 0, 20)
+TpTextBox.Text = ""
+TpTextBox.TextColor3 = Color3.new(1, 1, 1)
+TpTextBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+TpTextBox.TextSize = 12
+TpTextBox.Parent = TeleportFrame
+
+local ApplyTpButton = Instance.new("TextButton")
+ApplyTpButton.Size = UDim2.new(1, 0, 0, 20)
+ApplyTpButton.Position = UDim2.new(0, 0, 0, 40)
+ApplyTpButton.Text = "Teleport"
+ApplyTpButton.TextColor3 = Color3.new(1, 1, 1)
+ApplyTpButton.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+ApplyTpButton.TextSize = 12
+ApplyTpButton.Parent = TeleportFrame
+ApplyTpButton.MouseButton1Click:Connect(function()
+    local userId = tonumber(TpTextBox.Text)
+    if userId then
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player.UserId == userId then
+                if LocalPlayer.Character and player.Character then
+                    LocalPlayer.Character:MoveTo(player.Character.PrimaryPart.Position)
+                end
+                break
             end
         end
-    end)
-end
-
-local function disableWaterWalk()
-    if not waterWalkEnabled then return end
-    waterWalkEnabled = false
-    if connections.waterWalk then
-        connections.waterWalk:Disconnect()
-        connections.waterWalk = nil
     end
-    if humanoid then humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, true) end
-end
+    TeleportFrame.Visible = false
+end)
 
--- Hàm ESP
-local function enableEsp()
-    if espEnabled then return end
-    espEnabled = true
-    local function highlightPlayer(plr)
-        if plr ~= player and plr.Character then
-            local highlight = Instance.new("Highlight", plr.Character)
-            highlight.FillColor = Color3.fromRGB(255, 0, 0)
-            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-            highlight.FillTransparency = 0.5
-            highlight.OutlineTransparency = 0
+-- Buttons
+CreateButton("Run", function()
+    SpeedFrame.Visible = true
+end)
 
-            local billboard = Instance.new("BillboardGui", plr.Character:FindFirstChild("Head") or plr.Character)
-            billboard.Size = UDim2.new(0, 100, 0, 50)
-            billboard.AlwaysOnTop = true
-            billboard.StudsOffset = Vector3.new(0, 3, 0)
+CreateButton("High Jump", function()
+    JumpFrame.Visible = true
+end)
 
-            local distanceLabel = Instance.new("TextLabel", billboard)
-            distanceLabel.Size = UDim2.new(1, 0, 0.5, 0)
-            distanceLabel.BackgroundTransparency = 1
-            distanceLabel.TextColor3 = Color3.fromRGB(255, 193, 7)
-            distanceLabel.TextSize = 14
-            distanceLabel.Font = Enum.Font.Gotham
-
-            local healthLabel = Instance.new("TextLabel", billboard)
-            healthLabel.Size = UDim2.new(1, 0, 0.5, 0)
-            healthLabel.Position = UDim2.new(0, 0, 0.5, 0)
-            healthLabel.BackgroundTransparency = 1
-            healthLabel.TextColor3 = Color3.fromRGB(255, 193, 7)
-            healthLabel.TextSize = 14
-            healthLabel.Font = Enum.Font.Gotham
-
-            connections[plr.Name .. "_update"] = RunService.RenderStepped:Connect(function()
-                if plr.Character and plr.Character:FindFirstChild("Humanoid") and rootPart then
-                    local distance = (rootPart.Position - plr.Character:GetPrimaryPartCFrame().Position).Magnitude
-                    distanceLabel.Text = string.format("%.1f m", distance)
-                    healthLabel.Text = string.format("HP: %.1f/%d", plr.Character.Humanoid.Health, plr.Character.Humanoid.MaxHealth)
-                else
-                    distanceLabel.Text = ""
-                    healthLabel.Text = ""
-                end
-            end)
-
-            connections[plr.Name] = {highlight = highlight, billboard = billboard}
-        end
-    end
-    for _, plr in pairs(game.Players:GetPlayers()) do highlightPlayer(plr) end
-    connections.playerAdded = game.Players.PlayerAdded:Connect(highlightPlayer)
-end
-
-local function disableEsp()
-    if not espEnabled then return end
-    espEnabled = false
-    for _, plr in pairs(game.Players:GetPlayers()) do
-        if plr ~= player and connections[plr.Name] then
-            if connections[plr.Name].highlight then connections[plr.Name].highlight:Destroy() end
-            if connections[plr.Name].billboard then connections[plr.Name].billboard:Destroy() end
-            if connections[plr.Name .. "_update"] then connections[plr.Name .. "_update"]:Disconnect() end
-            connections[plr.Name] = nil
-            connections[plr.Name .. "_update"] = nil
-        end
-    end
-    if connections.playerAdded then
-        connections.playerAdded:Disconnect()
-        connections.playerAdded = nil
-    end
-end
-
--- Hàm chạy script
-local function runKiradaPremium()
-    spawn(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradapremium/refs/heads/main/Kiradapremium.lua"))()
-    end)
-end-- Sự kiện nút
-ToggleMenuButton.MouseButton1Click:Connect(toggleMenu)
-ToggleButton.MouseButton1Click:Connect(toggleScript)
-SpeedTextBox.FocusLost:Connect(function() if isScriptEnabled then humanoid.WalkSpeed = validateSpeed() end end)
-JumpTextBox.FocusLost:Connect(function() if isScriptEnabled then humanoid.JumpPower = validateJump() end end)
-RunNoclipButton.MouseButton1Click:Connect(function() if isScriptEnabled then humanoid.WalkSpeed = validateSpeed() humanoid.JumpPower = validateJump() enableNoclip() end end)
-RunNormalButton.MouseButton1Click:Connect(function() if isScriptEnabled then humanoid.WalkSpeed = validateSpeed() humanoid.JumpPower = validateJump() disableNoclip() end end)
-StopRunButton.MouseButton1Click:Connect(function() if isScriptEnabled then humanoid.WalkSpeed = originalSpeed humanoid.JumpPower = originalJump disableNoclip() end end)
-WaterWalkButton.MouseButton1Click:Connect(function()
-    if isScriptEnabled then
-        if waterWalkEnabled then
-            disableWaterWalk()
-            WaterWalkButton.Text = "Đi trên nước: TẮT"
-            WaterWalkButton.BackgroundColor3 = Color3.fromRGB(0, 188, 212)
-        else
-            enableWaterWalk()
-            WaterWalkButton.Text = "Đi trên nước: BẬT"
-            WaterWalkButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+local isInvisible = false
+CreateButton("Invisible", function()
+    isInvisible = not isInvisible
+    if LocalPlayer.Character then
+        for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") or part:IsA("Decal") then
+                part.Transparency = isInvisible and 1 or 0
+            end
         end
     end
 end)
-EspButton.MouseButton1Click:Connect(function()
-    if isScriptEnabled then
-        if espEnabled then
-            disableEsp()
-            EspButton.Text = "ESP: TẮT"
-            EspButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-        else
-            enableEsp()
-            EspButton.Text = "ESP: BẬT"
-            EspButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+
+CreateButton("Teleport", function()
+    TeleportFrame.Visible = true
+end)
+
+CreateButton("Server Hop (Low Pop)", function()
+    local placeId = game.PlaceId
+    local servers = {}
+    local cursor = ""
+    repeat
+        local url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"
+        if cursor ~= "" then url = url .. "&cursor=" .. cursor end
+        local response = HttpService:JSONDecode(HttpService:GetAsync(url))
+        servers = response.data
+        cursor = response.nextPageCursor
+    until not cursor
+
+    if #servers > 0 then
+        table.sort(servers, function(a, b) return a.playing < b.playing end)
+        local lowPopServer = servers[1]
+        if lowPopServer.playing < game.Players.NumPlayers then
+            TeleportService:TeleportToPlaceInstance(placeId, lowPopServer.id)
         end
     end
 end)
-RunKiradaPremiumButton.MouseButton1Click:Connect(runKiradaPremium)
-RunKiradaYeuBanButton.MouseButton1Click:Connect(runKiradaYeuBan)
-Tab1Button.MouseButton1Click:Connect(function() showTab(1, Tab1Button, Tab2Button) end)
-Tab2Button.MouseButton1Click:Connect(function() showTab(2, Tab2Button, Tab1Button) end)
 
--- Sự kiện phím tắt
-UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.E then toggleScript()
-    elseif input.KeyCode == Enum.KeyCode.Q then toggleMenu() end
+CreateButton("Toggle Menu", function()
+    MainFrame.Visible = not MainFrame.Visible
 end)
-
--- Sự kiện nhân vật tái sinh
-player.CharacterAdded:Connect(function(newChar)
-    character = newChar
-    humanoid = character:WaitForChild("Humanoid")
-    rootPart = character:WaitForChild("HumanoidRootPart")
-    originalSpeed = humanoid.WalkSpeed
-    originalJump = humanoid.JumpPower
-    if isScriptEnabled then
-        humanoid.WalkSpeed = validateSpeed()
-        humanoid.JumpPower = validateJump()
-    else
-        disableNoclip()
-        disableEsp()
-        disableWaterWalk()
-    end
-end)
-
--- Khởi động
-print("Kirada Hub tối ưu hóa và khởi động!")
-showTab(1, Tab1Button, Tab2Button)
-
-local function runKiradaYeuBan()
-    spawn(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradavnhub/refs/heads/main/Kiradavn.vietnam.kiradayeuban"))()
-    end)
-end
