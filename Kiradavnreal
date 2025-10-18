@@ -1,4 +1,4 @@
--- Kirada Hub Script (Cập nhật)
+-- Kirada Hub Script (Tối ưu hóa)
 -- Tạo bởi Grok
 
 local player = game.Players.LocalPlayer
@@ -16,22 +16,21 @@ ScreenGui.Name = "KiradaHub"
 ScreenGui.ResetOnSpawn = false
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 300, 0, 450) -- Menu dọc, tăng chiều cao cho thêm nút
+MainFrame.Size = UDim2.new(0, 300, 0, 450)
 MainFrame.Position = UDim2.new(0.5, -150, 0.5, -225)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35) -- Màu nền tối hiện đại
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
 MainFrame.Active = true
-MainFrame.Draggable = true -- Có thể kéo ngang/dọc
+MainFrame.Draggable = true
 MainFrame.Visible = false
 MainFrame.BackgroundTransparency = 1
 
--- Thêm bóng đổ
 local Shadow = Instance.new("ImageLabel")
 Shadow.Size = UDim2.new(1, 20, 1, 20)
 Shadow.Position = UDim2.new(0, -10, 0, -10)
 Shadow.BackgroundTransparency = 1
-Shadow.Image = "rbxassetid://1316045217" -- Hình ảnh bóng đổ
+Shadow.Image = "rbxassetid://1316045217"
 Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
 Shadow.ImageTransparency = 0.7
 Shadow.ScaleType = Enum.ScaleType.Slice
@@ -42,18 +41,17 @@ local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 12)
 UICorner.Parent = MainFrame
 
--- Thiết lập cuộn
 local ScrollingFrame = Instance.new("ScrollingFrame")
 ScrollingFrame.Size = UDim2.new(1, -20, 1, -20)
 ScrollingFrame.Position = UDim2.new(0, 10, 0, 10)
 ScrollingFrame.BackgroundTransparency = 1
 ScrollingFrame.ScrollBarThickness = 4
 ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 255)
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 500) -- Tăng CanvasSize để cuộn
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 500)
 ScrollingFrame.Parent = MainFrame
 
 local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.FillDirection = Enum.FillDirection.Vertical -- Menu dọc
+UIListLayout.FillDirection = Enum.FillDirection.Vertical
 UIListLayout.Padding = UDim.new(0, 10)
 UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 UIListLayout.Parent = ScrollingFrame
@@ -67,7 +65,6 @@ TitleLabel.TextSize = 26
 TitleLabel.Font = Enum.Font.GothamBlack
 TitleLabel.Parent = ScrollingFrame
 
--- Khung cho tốc độ và nhảy
 local MovementFrame = Instance.new("Frame")
 MovementFrame.Size = UDim2.new(0, 260, 0, 100)
 MovementFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
@@ -193,40 +190,31 @@ local WaterWalkUICorner = Instance.new("UICorner")
 WaterWalkUICorner.CornerRadius = UDim.new(0, 6)
 WaterWalkUICorner.Parent = WaterWalkButton
 
-local AutoClickButton = Instance.new("TextButton")
-AutoClickButton.Size = UDim2.new(0, 260, 0, 40)
-AutoClickButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-AutoClickButton.Text = "Auto Click: TẮT"
-AutoClickButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-AutoClickButton.TextSize = 18
-AutoClickButton.Font = Enum.Font.GothamBold
-AutoClickButton.Parent = ScrollingFrame
+local AntiAfkButton = Instance.new("TextButton")
+AntiAfkButton.Size = UDim2.new(0, 260, 0, 40)
+AntiAfkButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+AntiAfkButton.Text = "Anti AFK: TẮT"
+AntiAfkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AntiAfkButton.TextSize = 18
+AntiAfkButton.Font = Enum.Font.GothamBold
+AntiAfkButton.Parent = ScrollingFrame
 
-local AutoClickUICorner = Instance.new("UICorner")
-AutoClickUICorner.CornerRadius = UDim.new(0, 6)
-AutoClickUICorner.Parent = AutoClickButton
+local AntiAfkUICorner = Instance.new("UICorner")
+AntiAfkUICorner.CornerRadius = UDim.new(0, 6)
+AntiAfkUICorner.Parent = AntiAfkButton
 
-local AutoClickLabel = Instance.new("TextLabel")
-AutoClickLabel.Size = UDim2.new(0, 240, 0, 20)
-AutoClickLabel.BackgroundTransparency = 1
-AutoClickLabel.Text = "Click mỗi giây (Tối đa 150):"
-AutoClickLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-AutoClickLabel.TextSize = 16
-AutoClickLabel.Font = Enum.Font.Gotham
-AutoClickLabel.Parent = ScrollingFrame
+local AutoWinButton = Instance.new("TextButton")
+AutoWinButton.Size = UDim2.new(0, 260, 0, 40)
+AutoWinButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+AutoWinButton.Text = "Auto Win Legends Of Speed: TẮT"
+AutoWinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoWinButton.TextSize = 18
+AutoWinButton.Font = Enum.Font.GothamBold
+AutoWinButton.Parent = ScrollingFrame
 
-local AutoClickTextBox = Instance.new("TextBox")
-AutoClickTextBox.Size = UDim2.new(0, 220, 0, 30)
-AutoClickTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-AutoClickTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-AutoClickTextBox.TextSize = 16
-AutoClickTextBox.Font = Enum.Font.Gotham
-AutoClickTextBox.Text = "20"
-AutoClickTextBox.Parent = ScrollingFrame
-
-local AutoClickUICorner = Instance.new("UICorner")
-AutoClickUICorner.CornerRadius = UDim.new(0, 6)
-AutoClickUICorner.Parent = AutoClickTextBox
+local AutoWinUICorner = Instance.new("UICorner")
+AutoWinUICorner.CornerRadius = UDim.new(0, 6)
+AutoWinUICorner.Parent = AutoWinButton
 
 local EspButton = Instance.new("TextButton")
 EspButton.Size = UDim2.new(0, 260, 0, 40)
@@ -262,38 +250,29 @@ local originalJump = humanoid.JumpPower
 local noclipEnabled = false
 local espEnabled = false
 local waterWalkEnabled = false
-local autoClickEnabled = false
+local antiAfkEnabled = false
+local autoWinEnabled = false
 local connections = {}
+local legendsOfSpeedPlaceId = 3101667897
 
 -- Animation cho Menu
 local function toggleMenu()
-    if MainFrame.Visible then
-        local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
-        local tween = TweenService:Create(MainFrame, tweenInfo, {BackgroundTransparency = 1, Size = UDim2.new(0, 300, 0, 0)})
-        tween:Play()
-        wait(0.3)
-        MainFrame.Visible = false
-    else
-        MainFrame.Visible = true
-        MainFrame.Size = UDim2.new(0, 300, 0, 0)
-        local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-        local tween = TweenService:Create(MainFrame, tweenInfo, {BackgroundTransparency = 0, Size = UDim2.new(0, 300, 0, 450)})
-        tween:Play()
-    end
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, MainFrame.Visible and Enum.EasingDirection.In or Enum.EasingDirection.Out)
+    local targetSize = MainFrame.Visible and UDim2.new(0, 300, 0, 0) or UDim2.new(0, 300, 0, 450)
+    local tween = TweenService:Create(MainFrame, tweenInfo, {BackgroundTransparency = MainFrame.Visible and 1 or 0, Size = targetSize})
+    tween:Play()
+    wait(0.3)
+    MainFrame.Visible = not MainFrame.Visible
 end
 
--- Hiệu ứng hover cho nút
+-- Hiệu ứng hover
 local function addHoverEffect(button)
     local originalColor = button.BackgroundColor3
     button.MouseEnter:Connect(function()
-        local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-        local tween = TweenService:Create(button, tweenInfo, {BackgroundColor3 = originalColor:Lerp(Color3.fromRGB(255, 255, 255), 0.2)})
-        tween:Play()
+        TweenService:Create(button, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {BackgroundColor3 = originalColor:Lerp(Color3.fromRGB(255, 255, 255), 0.2)}):Play()
     end)
     button.MouseLeave:Connect(function()
-        local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-        local tween = TweenService:Create(button, tweenInfo, {BackgroundColor3 = originalColor})
-        tween:Play()
+        TweenService:Create(button, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {BackgroundColor3 = originalColor}):Play()
     end)
 end
 
@@ -302,7 +281,8 @@ addHoverEffect(RunNoclipButton)
 addHoverEffect(RunNormalButton)
 addHoverEffect(StopRunButton)
 addHoverEffect(WaterWalkButton)
-addHoverEffect(AutoClickButton)
+addHoverEffect(AntiAfkButton)
+addHoverEffect(AutoWinButton)
 addHoverEffect(EspButton)
 addHoverEffect(ToggleMenuButton)
 
@@ -317,57 +297,35 @@ local function toggleScript()
         disableNoclip()
         disableEsp()
         disableWaterWalk()
-        disableAutoClick()
+        disableAntiAfk()
+        disableAutoWin()
     end
 end
 
 local function validateSpeed()
-    local speed = tonumber(SpeedTextBox.Text)
-    if speed then
-        speed = math.clamp(speed, 0, 1000)
-        SpeedTextBox.Text = tostring(speed)
-        return speed
-    else
-        SpeedTextBox.Text = tostring(originalSpeed)
-        return originalSpeed
-    end
+    local speed = tonumber(SpeedTextBox.Text) or originalSpeed
+    speed = math.clamp(speed, 0, 1000)
+    SpeedTextBox.Text = tostring(speed)
+    return speed
 end
 
 local function validateJump()
-    local jump = tonumber(JumpTextBox.Text)
-    if jump then
-        jump = math.clamp(jump, 0, 500)
-        JumpTextBox.Text = tostring(jump)
-        return jump
-    else
-        JumpTextBox.Text = tostring(originalJump)
-        return originalJump
-    end
-end
-
-local function validateAutoClick()
-    local clicks = tonumber(AutoClickTextBox.Text)
-    if clicks then
-        clicks = math.clamp(clicks, 0, 150) -- Tối đa 150 click/giây
-        AutoClickTextBox.Text = tostring(clicks)
-        return clicks
-    else
-        AutoClickTextBox.Text = "20"
-        return 20
-    end
+    local jump = tonumber(JumpTextBox.Text) or originalJump
+    jump = math.clamp(jump, 0, 500)
+    JumpTextBox.Text = tostring(jump)
+    return jump
 end
 
 local function enableNoclip()
     if noclipEnabled then return end
     noclipEnabled = true
-    local function noclipLoop()
+    connections.noclip = RunService.Stepped:Connect(function()
         for _, part in pairs(character:GetDescendants()) do
             if part:IsA("BasePart") then
                 part.CanCollide = false
             end
         end
-    end
-    connections.noclip = RunService.Stepped:Connect(noclipLoop)
+    end)
 end
 
 local function disableNoclip()
@@ -387,7 +345,7 @@ end
 local function enableWaterWalk()
     if waterWalkEnabled then return end
     waterWalkEnabled = true
-    local function waterWalkLoop()
+    connections.waterWalk = RunService.Stepped:Connect(function()
         if character and humanoid then
             humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
             if humanoid:GetState() == Enum.HumanoidStateType.Swimming then
@@ -395,8 +353,7 @@ local function enableWaterWalk()
                 rootPart.Position = Vector3.new(rootPart.Position.X, rootPart.Position.Y + 0.1, rootPart.Position.Z)
             end
         end
-    end
-    connections.waterWalk = RunService.Stepped:Connect(waterWalkLoop)
+    end)
 end
 
 local function disableWaterWalk()
@@ -411,27 +368,54 @@ local function disableWaterWalk()
     end
 end
 
-local function enableAutoClick()
-    if autoClickEnabled then return end
-    autoClickEnabled = true
-    local clickRate = validateAutoClick()
-    local delay = 1 / clickRate
-    local function autoClickLoop()
-        while autoClickEnabled and isScriptEnabled do
-            game:GetService("VirtualUser"):ClickButton1(Vector2.new())
-            wait(delay)
+local function enableAntiAfk()
+    if antiAfkEnabled then return end
+    antiAfkEnabled = true
+    spawn(function()
+        while antiAfkEnabled and isScriptEnabled do
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            wait(30)
         end
-    end
-    connections.autoClick = RunService.Heartbeat:Connect(autoClickLoop)
+    end)
 end
 
-local function disableAutoClick()
-    if not autoClickEnabled then return end
-    autoClickEnabled = false
-    if connections.autoClick then
-        connections.autoClick:Disconnect()
-        connections.autoClick = nil
+local function disableAntiAfk()
+    antiAfkEnabled = false
+end
+
+local function enableAutoWin()
+    if autoWinEnabled or game.PlaceId ~= legendsOfSpeedPlaceId then
+        if game.PlaceId ~= legendsOfSpeedPlaceId then
+            warn("Không phải game Legends Of Speed!")
+        end
+        return
     end
+    autoWinEnabled = true
+    spawn(function()
+        while autoWinEnabled and isScriptEnabled do
+            if workspace:FindFirstChild("Orbs") then
+                for _, orb in pairs(workspace.Orbs:GetChildren()) do
+                    if orb:IsA("BasePart") then
+                        rootPart.CFrame = orb.CFrame
+                        wait(0.1)
+                    end
+                end
+            end
+            if workspace:FindFirstChild("Hoops") then
+                for _, hoop in pairs(workspace.Hoops:GetChildren()) do
+                    if hoop:IsA("BasePart") then
+                        rootPart.CFrame = hoop.CFrame
+                        wait(0.1)
+                    end
+                end
+            end
+            wait(1)
+        end
+    end)
+end
+
+local function disableAutoWin()
+    autoWinEnabled = false
 end
 
 local function enableEsp()
@@ -524,24 +508,31 @@ WaterWalkButton.MouseButton1Click:Connect(function()
     end
 end)
 
-AutoClickButton.MouseButton1Click:Connect(function()
+AntiAfkButton.MouseButton1Click:Connect(function()
     if isScriptEnabled then
-        if autoClickEnabled then
-            disableAutoClick()
-            AutoClickButton.Text = "Auto Click: TẮT"
-            AutoClickButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+        if antiAfkEnabled then
+            disableAntiAfk()
+            AntiAfkButton.Text = "Anti AFK: TẮT"
+            AntiAfkButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
         else
-            enableAutoClick()
-            AutoClickButton.Text = "Auto Click: BẬT"
-            AutoClickButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+            enableAntiAfk()
+            AntiAfkButton.Text = "Anti AFK: BẬT"
+            AntiAfkButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
         end
     end
 end)
 
-AutoClickTextBox.FocusLost:Connect(function()
-    if isScriptEnabled and autoClickEnabled then
-        disableAutoClick()
-        enableAutoClick() -- Cập nhật lại tần suất click
+AutoWinButton.MouseButton1Click:Connect(function()
+    if isScriptEnabled then
+        if autoWinEnabled then
+            disableAutoWin()
+            AutoWinButton.Text = "Auto Win Legends Of Speed: TẮT"
+            AutoWinButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+        else
+            enableAutoWin()
+            AutoWinButton.Text = "Auto Win Legends Of Speed: BẬT"
+            AutoWinButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        end
     end
 end)
 
@@ -559,7 +550,6 @@ EspButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Phím tắt
 UserInputService.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.E then
         toggleScript()
@@ -568,7 +558,6 @@ UserInputService.InputBegan:Connect(function(input)
     end
 end)
 
--- Xử lý khi nhân vật reset
 player.CharacterAdded:Connect(function(newChar)
     character = newChar
     humanoid = character:WaitForChild("Humanoid")
@@ -582,8 +571,9 @@ player.CharacterAdded:Connect(function(newChar)
         disableNoclip()
         disableEsp()
         disableWaterWalk()
-        disableAutoClick()
+        disableAntiAfk()
+        disableAutoWin()
     end
 end)
 
-print("Kirada Hub cập nhật và khởi động!")
+print("Kirada Hub tối ưu hóa và khởi động!")
