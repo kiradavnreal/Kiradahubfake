@@ -314,6 +314,19 @@ NutBatTatBay.MouseButton1Click:Connect(function()
     KhungBay.Visible = false
 end)
 
+-- Tàng hình
+local dangTangHinh = false
+local function BatTatTangHinh()
+    dangTangHinh = not dangTangHinh
+    if LocalPlayer.Character then
+        for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") or part:IsA("Decal") then
+                part.Transparency = dangTangHinh and 1 or 0
+            end
+        end
+    end
+end
+
 -- Khung Dịch chuyển
 local KhungDichChuyen = Instance.new("Frame")
 KhungDichChuyen.Size = UDim2.new(0, 150, 0, 80)
@@ -370,7 +383,29 @@ NutDichChuyen.MouseButton1Click:Connect(function()
     KhungDichChuyen.Visible = false
 end)
 
--- Logic Noclip
+-- Chuyển server
+local function ChuyenServer()
+    local placeId = game.PlaceId
+    local servers = {}
+    local cursor = ""
+    repeat
+        local url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"
+        if cursor ~= "" then url = url .. "&cursor=" .. cursor end
+        local response = HttpService:JSONDecode(HttpService:GetAsync(url))
+        servers = response.data
+        cursor = response.nextPageCursor
+    until not cursor
+
+    if #servers > 0 then
+        table.sort(servers, function(a, b) return a.playing < b.playing end)
+        local lowPopServer = servers[1]
+        if lowPopServer.playing < game.Players.NumPlayers then
+            TeleportService:TeleportToPlaceInstance(placeId, lowPopServer.id)
+        end
+    end
+end
+
+-- Noclip
 local dangNoclip = false
 local noclipConnection = nil
 
@@ -413,63 +448,6 @@ local function BatTatNoclip()
     end
 end
 
--- Các nút
-TaoNut("Tốc độ", function()
-    KhungTocDo.Visible = true
-end)
-
-TaoNut("Nhảy cao", function()
-    KhungNhayCao.Visible = true
-end)
-
-TaoNut("Bay", function()
-    KhungBay.Visible = true
-end)
-
-local dangTangHinh = false
-TaoNut("Tàng hình", function()
-    dangTangHinh = not dangTangHinh
-    if LocalPlayer.Character then
-        for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
-            if part:IsA("BasePart") or part:IsA("Decal") then
-                part.Transparency = dangTangHinh and 1 or 0
-            end
-        end
-    end
-end)
-
-TaoNut("Dịch chuyển", function()
-    KhungDichChuyen.Visible = true
-end)
-
-TaoNut("Chuyển server", function()
-    local placeId = game.PlaceId
-    local servers = {}
-    local cursor = ""
-    repeat
-        local url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"
-        if cursor ~= "" then url = url .. "&cursor=" .. cursor end
-        local response = HttpService:JSONDecode(HttpService:GetAsync(url))
-        servers = response.data
-        cursor = response.nextPageCursor
-    until not cursor
-
-    if #servers > 0 then
-        table.sort(servers, function(a, b) return a.playing < b.playing end)
-        local lowPopServer = servers[1]
-        if lowPopServer.playing < game.Players.NumPlayers then
-            TeleportService:TeleportToPlaceInstance(placeId, lowPopServer.id)
-        end
-    end
-end)
-
-TaoNut("Noclip", function()
-    BatTatNoclip()
-end)
-
-TaoNut("Bật/Tắt Menu", function()
-    MainFrame.Visible = not MainFrame.Visible
-end)
 -- Các nút trong menu
 TaoNut("Tốc độ", function()
     KhungTocDo.Visible = true
