@@ -1,4 +1,4 @@
--- Kirada Hub Script (Tối ưu hóa)
+-- Kirada Hub Script (Tối ưu hóa, xóa Anti AFK và Auto Win)
 -- Tạo bởi Grok
 
 local player = game.Players.LocalPlayer
@@ -9,24 +9,22 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
--- Thiết lập GUI
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = game.CoreGui
+-- Thiết lập GUI giống Banana Hub
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
 ScreenGui.Name = "KiradaHub"
 ScreenGui.ResetOnSpawn = false
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 300, 0, 450)
-MainFrame.Position = UDim2.new(0.5, -150, 0.5, -225)
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 600, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -300, 0.5, -150)
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-MainFrame.BorderSizePixel = 0
-MainFrame.Parent = ScreenGui
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Visible = false
 MainFrame.BackgroundTransparency = 1
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
 
-local Shadow = Instance.new("ImageLabel")
+local Shadow = Instance.new("ImageLabel", MainFrame)
 Shadow.Size = UDim2.new(1, 20, 1, 20)
 Shadow.Position = UDim2.new(0, -10, 0, -10)
 Shadow.BackgroundTransparency = 1
@@ -35,213 +33,188 @@ Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
 Shadow.ImageTransparency = 0.7
 Shadow.ScaleType = Enum.ScaleType.Slice
 Shadow.SliceCenter = Rect.new(10, 10, 10, 10)
-Shadow.Parent = MainFrame
 
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 12)
-UICorner.Parent = MainFrame
+-- Tab Bar
+local TabBar = Instance.new("Frame", MainFrame)
+TabBar.Size = UDim2.new(1, 0, 0, 40)
+TabBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+local TabBarLayout = Instance.new("UIListLayout", TabBar)
+TabBarLayout.FillDirection = Enum.FillDirection.Horizontal
+TabBarLayout.Padding = UDim.new(0, 10)
 
-local ScrollingFrame = Instance.new("ScrollingFrame")
-ScrollingFrame.Size = UDim2.new(1, -20, 1, -20)
-ScrollingFrame.Position = UDim2.new(0, 10, 0, 10)
-ScrollingFrame.BackgroundTransparency = 1
-ScrollingFrame.ScrollBarThickness = 4
-ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 255)
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 500)
-ScrollingFrame.Parent = MainFrame
+local Tab1Button = Instance.new("TextButton", TabBar)
+Tab1Button.Size = UDim2.new(0, 150, 1, 0)
+Tab1Button.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
+Tab1Button.Text = "Features"
+Tab1Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+Tab1Button.TextSize = 18
+Tab1Button.Font = Enum.Font.GothamBold
 
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.FillDirection = Enum.FillDirection.Vertical
-UIListLayout.Padding = UDim.new(0, 10)
-UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-UIListLayout.Parent = ScrollingFrame
+local Tab2Button = Instance.new("TextButton", TabBar)
+Tab2Button.Size = UDim2.new(0, 150, 1, 0)
+Tab2Button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+Tab2Button.Text = "Scripts"
+Tab2Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Tab2Button.TextSize = 18
+Tab2Button.Font = Enum.Font.GothamBold
 
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Size = UDim2.new(0, 260, 0, 40)
+-- Content Frame
+local ContentFrame = Instance.new("Frame", MainFrame)
+ContentFrame.Size = UDim2.new(1, 0, 1, -40)
+ContentFrame.Position = UDim2.new(0, 0, 0, 40)
+ContentFrame.BackgroundTransparency = 1
+
+-- Tab 1: Features (nút ngang)
+local FeaturesScrolling = Instance.new("ScrollingFrame", ContentFrame)
+FeaturesScrolling.Size = UDim2.new(1, 0, 1, 0)
+FeaturesScrolling.BackgroundTransparency = 1
+FeaturesScrolling.ScrollBarThickness = 4
+FeaturesScrolling.ScrollBarImageColor3 = Color3.fromRGB(255, 193, 7)
+FeaturesScrolling.CanvasSize = UDim2.new(2, 0, 0, 0)
+
+local FeaturesLayout = Instance.new("UIListLayout", FeaturesScrolling)
+FeaturesLayout.FillDirection = Enum.FillDirection.Horizontal
+FeaturesLayout.Padding = UDim.new(0, 10)
+FeaturesLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+
+-- Tab 2: Scripts
+local ScriptsFrame = Instance.new("Frame", ContentFrame)
+ScriptsFrame.Size = UDim2.new(1, 0, 1, 0)
+ScriptsFrame.BackgroundTransparency = 1
+ScriptsFrame.Visible = false
+
+local ScriptsLayout = Instance.new("UIListLayout", ScriptsFrame)
+ScriptsLayout.FillDirection = Enum.FillDirection.Vertical
+ScriptsLayout.Padding = UDim.new(0, 10)
+ScriptsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+local RunCombinedButton = Instance.new("TextButton", ScriptsFrame)
+RunCombinedButton.Size = UDim2.new(0, 260, 0, 40)
+RunCombinedButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+RunCombinedButton.Text = "Run Kirada Premium & BTH"
+RunCombinedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RunCombinedButton.TextSize = 18
+RunCombinedButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", RunCombinedButton).CornerRadius = UDim.new(0, 6)
+
+-- Toggle Menu Button
+local ToggleMenuButton = Instance.new("TextButton", ScreenGui)
+ToggleMenuButton.Size = UDim2.new(0, 60, 0, 60)
+ToggleMenuButton.Position = UDim2.new(0, 10, 0, 10)
+ToggleMenuButton.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
+ToggleMenuButton.Text = "☰"
+ToggleMenuButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+ToggleMenuButton.TextSize = 28
+ToggleMenuButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", ToggleMenuButton).CornerRadius = UDim.new(0, 30)
+
+-- Features
+local TitleLabel = Instance.new("TextLabel", FeaturesScrolling)
+TitleLabel.Size = UDim2.new(0, 150, 0, 40)
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Text = "Kirada Hub"
-TitleLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
+TitleLabel.TextColor3 = Color3.fromRGB(255, 193, 7)
 TitleLabel.TextSize = 26
 TitleLabel.Font = Enum.Font.GothamBlack
-TitleLabel.Parent = ScrollingFrame
 
-local MovementFrame = Instance.new("Frame")
-MovementFrame.Size = UDim2.new(0, 260, 0, 100)
+local MovementFrame = Instance.new("Frame", FeaturesScrolling)
+MovementFrame.Size = UDim2.new(0, 180, 0, 100)
 MovementFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 MovementFrame.BackgroundTransparency = 0.3
-MovementFrame.Parent = ScrollingFrame
+Instance.new("UICorner", MovementFrame).CornerRadius = UDim.new(0, 8)
 
-local MovementUICorner = Instance.new("UICorner")
-MovementUICorner.CornerRadius = UDim.new(0, 8)
-MovementUICorner.Parent = MovementFrame
-
-local MovementLayout = Instance.new("UIListLayout")
+local MovementLayout = Instance.new("UIListLayout", MovementFrame)
 MovementLayout.FillDirection = Enum.FillDirection.Vertical
 MovementLayout.Padding = UDim.new(0, 10)
 MovementLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-MovementLayout.Parent = MovementFrame
 
-local SpeedLabel = Instance.new("TextLabel")
-SpeedLabel.Size = UDim2.new(0, 240, 0, 20)
+local SpeedLabel = Instance.new("TextLabel", MovementFrame)
+SpeedLabel.Size = UDim2.new(0, 160, 0, 20)
 SpeedLabel.BackgroundTransparency = 1
-SpeedLabel.Text = "Tốc độ (Tối đa 1000):"
+SpeedLabel.Text = "Tốc độ (Max 1000):"
 SpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 SpeedLabel.TextSize = 16
 SpeedLabel.Font = Enum.Font.Gotham
-SpeedLabel.Parent = MovementFrame
 
-local SpeedTextBox = Instance.new("TextBox")
-SpeedTextBox.Size = UDim2.new(0, 220, 0, 30)
+local SpeedTextBox = Instance.new("TextBox", MovementFrame)
+SpeedTextBox.Size = UDim2.new(0, 140, 0, 30)
 SpeedTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
 SpeedTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 SpeedTextBox.TextSize = 16
 SpeedTextBox.Font = Enum.Font.Gotham
 SpeedTextBox.Text = "16"
-SpeedTextBox.Parent = MovementFrame
+Instance.new("UICorner", SpeedTextBox).CornerRadius = UDim.new(0, 6)
 
-local SpeedUICorner = Instance.new("UICorner")
-SpeedUICorner.CornerRadius = UDim.new(0, 6)
-SpeedUICorner.Parent = SpeedTextBox
-
-local JumpLabel = Instance.new("TextLabel")
-JumpLabel.Size = UDim2.new(0, 240, 0, 20)
+local JumpLabel = Instance.new("TextLabel", MovementFrame)
+JumpLabel.Size = UDim2.new(0, 160, 0, 20)
 JumpLabel.BackgroundTransparency = 1
-JumpLabel.Text = "Nhảy (Tối đa 500):"
+JumpLabel.Text = "Nhảy (Max 500):"
 JumpLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 JumpLabel.TextSize = 16
 JumpLabel.Font = Enum.Font.Gotham
-JumpLabel.Parent = MovementFrame
 
-local JumpTextBox = Instance.new("TextBox")
-JumpTextBox.Size = UDim2.new(0, 220, 0, 30)
+local JumpTextBox = Instance.new("TextBox", MovementFrame)
+JumpTextBox.Size = UDim2.new(0, 140, 0, 30)
 JumpTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
 JumpTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 JumpTextBox.TextSize = 16
 JumpTextBox.Font = Enum.Font.Gotham
 JumpTextBox.Text = "50"
-JumpTextBox.Parent = MovementFrame
+Instance.new("UICorner", JumpTextBox).CornerRadius = UDim.new(0, 6)
 
-local JumpUICorner = Instance.new("UICorner")
-JumpUICorner.CornerRadius = UDim.new(0, 6)
-JumpUICorner.Parent = JumpTextBox
-
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 260, 0, 40)
+local ToggleButton = Instance.new("TextButton", FeaturesScrolling)
+ToggleButton.Size = UDim2.new(0, 150, 0, 40)
 ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
 ToggleButton.Text = "Bật/Tắt Script: TẮT"
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleButton.TextSize = 18
 ToggleButton.Font = Enum.Font.GothamBold
-ToggleButton.Parent = ScrollingFrame
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0, 6)
 
-local ToggleUICorner = Instance.new("UICorner")
-ToggleUICorner.CornerRadius = UDim.new(0, 6)
-ToggleUICorner.Parent = ToggleButton
-
-local RunNoclipButton = Instance.new("TextButton")
-RunNoclipButton.Size = UDim2.new(0, 260, 0, 40)
+local RunNoclipButton = Instance.new("TextButton", FeaturesScrolling)
+RunNoclipButton.Size = UDim2.new(0, 150, 0, 40)
 RunNoclipButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
 RunNoclipButton.Text = "Chạy xuyên tường"
 RunNoclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 RunNoclipButton.TextSize = 18
 RunNoclipButton.Font = Enum.Font.GothamBold
-RunNoclipButton.Parent = ScrollingFrame
+Instance.new("UICorner", RunNoclipButton).CornerRadius = UDim.new(0, 6)
 
-local RunNoclipUICorner = Instance.new("UICorner")
-RunNoclipUICorner.CornerRadius = UDim.new(0, 6)
-RunNoclipUICorner.Parent = RunNoclipButton
-
-local RunNormalButton = Instance.new("TextButton")
-RunNormalButton.Size = UDim2.new(0, 260, 0, 40)
+local RunNormalButton = Instance.new("TextButton", FeaturesScrolling)
+RunNormalButton.Size = UDim2.new(0, 150, 0, 40)
 RunNormalButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
 RunNormalButton.Text = "Chạy không xuyên"
 RunNormalButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 RunNormalButton.TextSize = 18
 RunNormalButton.Font = Enum.Font.GothamBold
-RunNormalButton.Parent = ScrollingFrame
+Instance.new("UICorner", RunNormalButton).CornerRadius = UDim.new(0, 6)
 
-local RunNormalUICorner = Instance.new("UICorner")
-RunNormalUICorner.CornerRadius = UDim.new(0, 6)
-RunNormalUICorner.Parent = RunNormalButton
-
-local StopRunButton = Instance.new("TextButton")
-StopRunButton.Size = UDim2.new(0, 260, 0, 40)
+local StopRunButton = Instance.new("TextButton", FeaturesScrolling)
+StopRunButton.Size = UDim2.new(0, 150, 0, 40)
 StopRunButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
 StopRunButton.Text = "Tắt chạy"
 StopRunButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 StopRunButton.TextSize = 18
 StopRunButton.Font = Enum.Font.GothamBold
-StopRunButton.Parent = ScrollingFrame
+Instance.new("UICorner", StopRunButton).CornerRadius = UDim.new(0, 6)
 
-local StopRunUICorner = Instance.new("UICorner")
-StopRunUICorner.CornerRadius = UDim.new(0, 6)
-StopRunUICorner.Parent = StopRunButton
-
-local WaterWalkButton = Instance.new("TextButton")
-WaterWalkButton.Size = UDim2.new(0, 260, 0, 40)
+local WaterWalkButton = Instance.new("TextButton", FeaturesScrolling)
+WaterWalkButton.Size = UDim2.new(0, 150, 0, 40)
 WaterWalkButton.BackgroundColor3 = Color3.fromRGB(0, 188, 212)
 WaterWalkButton.Text = "Đi trên nước: TẮT"
 WaterWalkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 WaterWalkButton.TextSize = 18
 WaterWalkButton.Font = Enum.Font.GothamBold
-WaterWalkButton.Parent = ScrollingFrame
+Instance.new("UICorner", WaterWalkButton).CornerRadius = UDim.new(0, 6)
 
-local WaterWalkUICorner = Instance.new("UICorner")
-WaterWalkUICorner.CornerRadius = UDim.new(0, 6)
-WaterWalkUICorner.Parent = WaterWalkButton
-
-local AntiAfkButton = Instance.new("TextButton")
-AntiAfkButton.Size = UDim2.new(0, 260, 0, 40)
-AntiAfkButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-AntiAfkButton.Text = "Anti AFK: TẮT"
-AntiAfkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-AntiAfkButton.TextSize = 18
-AntiAfkButton.Font = Enum.Font.GothamBold
-AntiAfkButton.Parent = ScrollingFrame
-
-local AntiAfkUICorner = Instance.new("UICorner")
-AntiAfkUICorner.CornerRadius = UDim.new(0, 6)
-AntiAfkUICorner.Parent = AntiAfkButton
-
-local AutoWinButton = Instance.new("TextButton")
-AutoWinButton.Size = UDim2.new(0, 260, 0, 40)
-AutoWinButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-AutoWinButton.Text = "Auto Win Legends Of Speed: TẮT"
-AutoWinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-AutoWinButton.TextSize = 18
-AutoWinButton.Font = Enum.Font.GothamBold
-AutoWinButton.Parent = ScrollingFrame
-
-local AutoWinUICorner = Instance.new("UICorner")
-AutoWinUICorner.CornerRadius = UDim.new(0, 6)
-AutoWinUICorner.Parent = AutoWinButton
-
-local EspButton = Instance.new("TextButton")
-EspButton.Size = UDim2.new(0, 260, 0, 40)
+local EspButton = Instance.new("TextButton", FeaturesScrolling)
+EspButton.Size = UDim2.new(0, 150, 0, 40)
 EspButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-EspButton.Text = "Bật định vị người chơi"
+EspButton.Text = "ESP: TẮT"
 EspButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 EspButton.TextSize = 18
 EspButton.Font = Enum.Font.GothamBold
-EspButton.Parent = ScrollingFrame
-
-local EspUICorner = Instance.new("UICorner")
-EspUICorner.CornerRadius = UDim.new(0, 6)
-EspUICorner.Parent = EspButton
-
-local ToggleMenuButton = Instance.new("TextButton")
-ToggleMenuButton.Size = UDim2.new(0, 60, 0, 60)
-ToggleMenuButton.Position = UDim2.new(0, 10, 0, 10)
-ToggleMenuButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
-ToggleMenuButton.Text = "☰"
-ToggleMenuButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleMenuButton.TextSize = 28
-ToggleMenuButton.Font = Enum.Font.GothamBold
-ToggleMenuButton.Parent = ScreenGui
-
-local ToggleMenuUICorner = Instance.new("UICorner")
-ToggleMenuUICorner.CornerRadius = UDim.new(0, 30)
-ToggleMenuUICorner.Parent = ToggleMenuButton
+Instance.new("UICorner", EspButton).CornerRadius = UDim.new(0, 6)
 
 -- Biến
 local isScriptEnabled = false
@@ -250,22 +223,17 @@ local originalJump = humanoid.JumpPower
 local noclipEnabled = false
 local espEnabled = false
 local waterWalkEnabled = false
-local antiAfkEnabled = false
-local autoWinEnabled = false
 local connections = {}
-local legendsOfSpeedPlaceId = 3101667897
 
--- Animation cho Menu
+-- Tối ưu hàm
 local function toggleMenu()
     local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, MainFrame.Visible and Enum.EasingDirection.In or Enum.EasingDirection.Out)
-    local targetSize = MainFrame.Visible and UDim2.new(0, 300, 0, 0) or UDim2.new(0, 300, 0, 450)
-    local tween = TweenService:Create(MainFrame, tweenInfo, {BackgroundTransparency = MainFrame.Visible and 1 or 0, Size = targetSize})
-    tween:Play()
+    local targetSize = MainFrame.Visible and UDim2.new(0, 600, 0, 0) or UDim2.new(0, 600, 0, 300)
+    TweenService:Create(MainFrame, tweenInfo, {BackgroundTransparency = MainFrame.Visible and 1 or 0, Size = targetSize}):Play()
     wait(0.3)
     MainFrame.Visible = not MainFrame.Visible
 end
 
--- Hiệu ứng hover
 local function addHoverEffect(button)
     local originalColor = button.BackgroundColor3
     button.MouseEnter:Connect(function()
@@ -276,29 +244,30 @@ local function addHoverEffect(button)
     end)
 end
 
-addHoverEffect(ToggleButton)
-addHoverEffect(RunNoclipButton)
-addHoverEffect(RunNormalButton)
-addHoverEffect(StopRunButton)
-addHoverEffect(WaterWalkButton)
-addHoverEffect(AntiAfkButton)
-addHoverEffect(AutoWinButton)
-addHoverEffect(EspButton)
-addHoverEffect(ToggleMenuButton)
+for _, button in pairs({ToggleButton, RunNoclipButton, RunNormalButton, StopRunButton, WaterWalkButton, EspButton, RunCombinedButton, ToggleMenuButton, Tab1Button, Tab2Button}) do
+    addHoverEffect(button)
+end
+
+local function showTab(tab, button1, button2)
+    FeaturesScrolling.Visible = (tab == 1)
+    ScriptsFrame.Visible = (tab == 2)
+    button1.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
+    button2.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+end
+
+Tab1Button.MouseButton1Click:Connect(function() showTab(1, Tab1Button, Tab2Button) end)
+Tab2Button.MouseButton1Click:Connect(function() showTab(2, Tab2Button, Tab1Button) end)
 
 local function toggleScript()
     isScriptEnabled = not isScriptEnabled
     ToggleButton.Text = "Bật/Tắt Script: " .. (isScriptEnabled and "BẬT" or "TẮT")
     ToggleButton.BackgroundColor3 = isScriptEnabled and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(100, 100, 255)
-    
     if not isScriptEnabled then
         humanoid.WalkSpeed = originalSpeed
         humanoid.JumpPower = originalJump
         disableNoclip()
         disableEsp()
         disableWaterWalk()
-        disableAntiAfk()
-        disableAutoWin()
     end
 end
 
@@ -321,9 +290,7 @@ local function enableNoclip()
     noclipEnabled = true
     connections.noclip = RunService.Stepped:Connect(function()
         for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
+            if part:IsA("BasePart") then part.CanCollide = false end
         end
     end)
 end
@@ -336,9 +303,7 @@ local function disableNoclip()
         connections.noclip = nil
     end
     for _, part in pairs(character:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.CanCollide = true
-        end
+        if part:IsA("BasePart") then part.CanCollide = true end
     end
 end
 
@@ -363,59 +328,7 @@ local function disableWaterWalk()
         connections.waterWalk:Disconnect()
         connections.waterWalk = nil
     end
-    if humanoid then
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, true)
-    end
-end
-
-local function enableAntiAfk()
-    if antiAfkEnabled then return end
-    antiAfkEnabled = true
-    spawn(function()
-        while antiAfkEnabled and isScriptEnabled do
-            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-            wait(30)
-        end
-    end)
-end
-
-local function disableAntiAfk()
-    antiAfkEnabled = false
-end
-
-local function enableAutoWin()
-    if autoWinEnabled or game.PlaceId ~= legendsOfSpeedPlaceId then
-        if game.PlaceId ~= legendsOfSpeedPlaceId then
-            warn("Không phải game Legends Of Speed!")
-        end
-        return
-    end
-    autoWinEnabled = true
-    spawn(function()
-        while autoWinEnabled and isScriptEnabled do
-            if workspace:FindFirstChild("Orbs") then
-                for _, orb in pairs(workspace.Orbs:GetChildren()) do
-                    if orb:IsA("BasePart") then
-                        rootPart.CFrame = orb.CFrame
-                        wait(0.1)
-                    end
-                end
-            end
-            if workspace:FindFirstChild("Hoops") then
-                for _, hoop in pairs(workspace.Hoops:GetChildren()) do
-                    if hoop:IsA("BasePart") then
-                        rootPart.CFrame = hoop.CFrame
-                        wait(0.1)
-                    end
-                end
-            end
-            wait(1)
-        end
-    end)
-end
-
-local function disableAutoWin()
-    autoWinEnabled = false
+    if humanoid then humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, true) end
 end
 
 local function enableEsp()
@@ -423,18 +336,47 @@ local function enableEsp()
     espEnabled = true
     local function highlightPlayer(plr)
         if plr ~= player and plr.Character then
-            local highlight = Instance.new("Highlight")
+            local highlight = Instance.new("Highlight", plr.Character)
             highlight.FillColor = Color3.fromRGB(255, 0, 0)
             highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
             highlight.FillTransparency = 0.5
             highlight.OutlineTransparency = 0
-            highlight.Parent = plr.Character
-            connections[plr.Name] = highlight
+
+            local billboard = Instance.new("BillboardGui", plr.Character:FindFirstChild("Head") or plr.Character)
+            billboard.Size = UDim2.new(0, 100, 0, 50)
+            billboard.AlwaysOnTop = true
+            billboard.StudsOffset = Vector3.new(0, 3, 0)
+
+            local distanceLabel = Instance.new("TextLabel", billboard)
+            distanceLabel.Size = UDim2.new(1, 0, 0.5, 0)
+            distanceLabel.BackgroundTransparency = 1
+            distanceLabel.TextColor3 = Color3.fromRGB(255, 193, 7)
+            distanceLabel.TextSize = 14
+            distanceLabel.Font = Enum.Font.Gotham
+
+            local healthLabel = Instance.new("TextLabel", billboard)
+            healthLabel.Size = UDim2.new(1, 0, 0.5, 0)
+            healthLabel.Position = UDim2.new(0, 0, 0.5, 0)
+            healthLabel.BackgroundTransparency = 1
+            healthLabel.TextColor3 = Color3.fromRGB(255, 193, 7)
+            healthLabel.TextSize = 14
+            healthLabel.Font = Enum.Font.Gotham
+
+            connections[plr.Name .. "_update"] = RunService.RenderStepped:Connect(function()
+                if plr.Character and plr.Character:FindFirstChild("Humanoid") and rootPart then
+                    local distance = (rootPart.Position - plr.Character:GetPrimaryPartCFrame().Position).Magnitude
+                    distanceLabel.Text = string.format("%.1f m", distance)
+                    healthLabel.Text = string.format("HP: %.1f/%d", plr.Character.Humanoid.Health, plr.Character.Humanoid.MaxHealth)
+                else
+                    distanceLabel.Text = ""
+                    healthLabel.Text = ""
+                end
+            end)
+
+            connections[plr.Name] = {highlight = highlight, billboard = billboard}
         end
     end
-    for _, plr in pairs(game.Players:GetPlayers()) do
-        highlightPlayer(plr)
-    end
+    for _, plr in pairs(game.Players:GetPlayers()) do highlightPlayer(plr) end
     connections.playerAdded = game.Players.PlayerAdded:Connect(highlightPlayer)
 end
 
@@ -442,9 +384,12 @@ local function disableEsp()
     if not espEnabled then return end
     espEnabled = false
     for _, plr in pairs(game.Players:GetPlayers()) do
-        if plr ~= player and plr.Character and connections[plr.Name] then
-            connections[plr.Name]:Destroy()
+        if plr ~= player and connections[plr.Name] then
+            if connections[plr.Name].highlight then connections[plr.Name].highlight:Destroy() end
+            if connections[plr.Name].billboard then connections[plr.Name].billboard:Destroy() end
+            if connections[plr.Name .. "_update"] then connections[plr.Name .. "_update"]:Disconnect() end
             connections[plr.Name] = nil
+            connections[plr.Name .. "_update"] = nil
         end
     end
     if connections.playerAdded then
@@ -453,47 +398,21 @@ local function disableEsp()
     end
 end
 
+local function runCombinedScripts()
+    spawn(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradapremium/refs/heads/main/Kiradapremium.lua"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradavnhub/refs/heads/main/Kiradavn.vietnam.kiradayeuban"))()
+    end)
+end
+
 -- Sự kiện
 ToggleMenuButton.MouseButton1Click:Connect(toggleMenu)
-
 ToggleButton.MouseButton1Click:Connect(toggleScript)
-
-SpeedTextBox.FocusLost:Connect(function()
-    if isScriptEnabled then
-        humanoid.WalkSpeed = validateSpeed()
-    end
-end)
-
-JumpTextBox.FocusLost:Connect(function()
-    if isScriptEnabled then
-        humanoid.JumpPower = validateJump()
-    end
-end)
-
-RunNoclipButton.MouseButton1Click:Connect(function()
-    if isScriptEnabled then
-        humanoid.WalkSpeed = validateSpeed()
-        humanoid.JumpPower = validateJump()
-        enableNoclip()
-    end
-end)
-
-RunNormalButton.MouseButton1Click:Connect(function()
-    if isScriptEnabled then
-        humanoid.WalkSpeed = validateSpeed()
-        humanoid.JumpPower = validateJump()
-        disableNoclip()
-    end
-end)
-
-StopRunButton.MouseButton1Click:Connect(function()
-    if isScriptEnabled then
-        humanoid.WalkSpeed = originalSpeed
-        humanoid.JumpPower = originalJump
-        disableNoclip()
-    end
-end)
-
+SpeedTextBox.FocusLost:Connect(function() if isScriptEnabled then humanoid.WalkSpeed = validateSpeed() end end)
+JumpTextBox.FocusLost:Connect(function() if isScriptEnabled then humanoid.JumpPower = validateJump() end end)
+RunNoclipButton.MouseButton1Click:Connect(function() if isScriptEnabled then humanoid.WalkSpeed = validateSpeed() humanoid.JumpPower = validateJump() enableNoclip() end end)
+RunNormalButton.MouseButton1Click:Connect(function() if isScriptEnabled then humanoid.WalkSpeed = validateSpeed() humanoid.JumpPower = validateJump() disableNoclip() end end)
+StopRunButton.MouseButton1Click:Connect(function() if isScriptEnabled then humanoid.WalkSpeed = originalSpeed humanoid.JumpPower = originalJump disableNoclip() end end)
 WaterWalkButton.MouseButton1Click:Connect(function()
     if isScriptEnabled then
         if waterWalkEnabled then
@@ -507,55 +426,24 @@ WaterWalkButton.MouseButton1Click:Connect(function()
         end
     end
 end)
-
-AntiAfkButton.MouseButton1Click:Connect(function()
-    if isScriptEnabled then
-        if antiAfkEnabled then
-            disableAntiAfk()
-            AntiAfkButton.Text = "Anti AFK: TẮT"
-            AntiAfkButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-        else
-            enableAntiAfk()
-            AntiAfkButton.Text = "Anti AFK: BẬT"
-            AntiAfkButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-        end
-    end
-end)
-
-AutoWinButton.MouseButton1Click:Connect(function()
-    if isScriptEnabled then
-        if autoWinEnabled then
-            disableAutoWin()
-            AutoWinButton.Text = "Auto Win Legends Of Speed: TẮT"
-            AutoWinButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-        else
-            enableAutoWin()
-            AutoWinButton.Text = "Auto Win Legends Of Speed: BẬT"
-            AutoWinButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-        end
-    end
-end)
-
 EspButton.MouseButton1Click:Connect(function()
     if isScriptEnabled then
         if espEnabled then
             disableEsp()
-            EspButton.Text = "Bật định vị người chơi"
+            EspButton.Text = "ESP: TẮT"
             EspButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
         else
             enableEsp()
-            EspButton.Text = "Tắt định vị người chơi"
+            EspButton.Text = "ESP: BẬT"
             EspButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
         end
     end
 end)
+RunCombinedButton.MouseButton1Click:Connect(runCombinedScripts)
 
 UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.E then
-        toggleScript()
-    elseif input.KeyCode == Enum.KeyCode.Q then
-        toggleMenu()
-    end
+    if input.KeyCode == Enum.KeyCode.E then toggleScript()
+    elseif input.KeyCode == Enum.KeyCode.Q then toggleMenu() end
 end)
 
 player.CharacterAdded:Connect(function(newChar)
@@ -571,9 +459,8 @@ player.CharacterAdded:Connect(function(newChar)
         disableNoclip()
         disableEsp()
         disableWaterWalk()
-        disableAntiAfk()
-        disableAutoWin()
     end
 end)
 
 print("Kirada Hub tối ưu hóa và khởi động!")
+showTab(1, Tab1Button, Tab2Button)
