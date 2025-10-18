@@ -1,167 +1,362 @@
--- Kiradabeta Script
--- Updated with High Jump feature and compact input fields
+-- Script KiradaHub
+-- Bao gồm: Tốc độ, Nhảy cao, Bay, Tàng hình, Dịch chuyển, Chuyển server ít người, Noclip, Bật/Tắt Menu
+-- Hỗ trợ kéo thả menu bằng cảm ứng
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local PhysicsService = game:GetService("PhysicsService")
 
--- Create ScreenGui
+-- Tạo ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KiradaBeta"
+ScreenGui.Name = "KiradaHub"
 ScreenGui.Parent = game.CoreGui
 
--- Create Main Frame (Horizontal Menu)
+-- Tạo khung chính (Menu dọc)
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 600, 0, 50)
-MainFrame.Position = UDim2.new(0.5, -300, 0, 20)
-MainFrame.BackgroundColor3 = Color3.new(0, 0, 0) -- Black
+MainFrame.Size = UDim2.new(0, 150, 0, 400)
+MainFrame.Position = UDim2.new(0, 20, 0.5, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20) -- Đen đậm
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
 
--- UIListLayout for horizontal buttons
+-- Thêm góc bo tròn
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+-- Thêm viền
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(50, 50, 50)
+UIStroke.Thickness = 2
+UIStroke.Parent = MainFrame
+
+-- Thêm hiệu ứng bóng
+local Shadow = Instance.new("ImageLabel")
+Shadow.Size = UDim2.new(1, 20, 1, 20)
+Shadow.Position = UDim2.new(0, -10, 0, -10)
+Shadow.BackgroundTransparency = 1
+Shadow.Image = "rbxassetid://1316045217" -- Hiệu ứng bóng Roblox
+Shadow.ImageTransparency = 0.8
+Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.ScaleType = Enum.ScaleType.Slice
+Shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+Shadow.Parent = MainFrame
+Shadow.ZIndex = -1
+
+-- UIListLayout cho các nút dọc
 local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.FillDirection = Enum.FillDirection.Horizontal
+UIListLayout.FillDirection = Enum.FillDirection.Vertical
 UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 UIListLayout.Padding = UDim.new(0, 10)
 UIListLayout.Parent = MainFrame
 
--- Function to create buttons
-local function CreateButton(name, callback)
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(0, 100, 0, 40)
-    Button.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-    Button.Text = name
-    Button.TextColor3 = Color3.new(1, 1, 1) -- White
-    Button.TextSize = 14
-    Button.Parent = MainFrame
-    Button.MouseButton1Click:Connect(callback)
-    return Button
+-- Hàm tạo nút
+local function TaoNut(ten, callback)
+    local Nut = Instance.new("TextButton")
+    Nut.Size = UDim2.new(0, 130, 0, 40)
+    Nut.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Nut.Text = ten
+    Nut.TextColor3 = Color3.fromRGB(255, 255, 255) -- Trắng
+    Nut.TextSize = 14
+    Nut.Parent = MainFrame
+    local NutCorner = Instance.new("UICorner")
+    NutCorner.CornerRadius = UDim.new(0, 6)
+    NutCorner.Parent = Nut
+    local NutStroke = Instance.new("UIStroke")
+    NutStroke.Color = Color3.fromRGB(60, 60, 60)
+    NutStroke.Thickness = 1
+    NutStroke.Parent = Nut
+    Nut.MouseButton1Click:Connect(callback)
+    return Nut
 end
 
--- Speed Hack Frame
-local SpeedFrame = Instance.new("Frame")
-SpeedFrame.Size = UDim2.new(0, 150, 0, 80)
-SpeedFrame.Position = UDim2.new(0.5, -75, 0.5, -40)
-SpeedFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-SpeedFrame.BorderSizePixel = 0
-SpeedFrame.Visible = false
-SpeedFrame.Parent = ScreenGui
+-- Kéo thả menu
+local dragging = false
+local dragStart = nil
+local startPos = nil
 
-local SpeedLabel = Instance.new("TextLabel")
-SpeedLabel.Size = UDim2.new(1, 0, 0, 20)
-SpeedLabel.Text = "Custom Speed"
-SpeedLabel.TextColor3 = Color3.new(1, 1, 1)
-SpeedLabel.BackgroundTransparency = 1
-SpeedLabel.TextSize = 12
-SpeedLabel.Parent = SpeedFrame
-
-local SpeedTextBox = Instance.new("TextBox")
-SpeedTextBox.Size = UDim2.new(1, 0, 0, 20)
-SpeedTextBox.Position = UDim2.new(0, 0, 0, 20)
-SpeedTextBox.Text = "16" -- Default speed
-SpeedTextBox.TextColor3 = Color3.new(1, 1, 1)
-SpeedTextBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-SpeedTextBox.TextSize = 12
-SpeedTextBox.Parent = SpeedFrame
-
-local ApplySpeedButton = Instance.new("TextButton")
-ApplySpeedButton.Size = UDim2.new(1, 0, 0, 20)
-ApplySpeedButton.Position = UDim2.new(0, 0, 0, 40)
-ApplySpeedButton.Text = "Apply"
-ApplySpeedButton.TextColor3 = Color3.new(1, 1, 1)
-ApplySpeedButton.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-ApplySpeedButton.TextSize = 12
-ApplySpeedButton.Parent = SpeedFrame
-ApplySpeedButton.MouseButton1Click:Connect(function()
-    local speed = tonumber(SpeedTextBox.Text)
-    if speed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = speed -- No limit
+UserInputService.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if MainFrame.Visible and MainFrame:IsAncestorOf(game:GetService("GuiService"):GetFocusedTextBox()) == false then
+            local pos = input.Position
+            local framePos = MainFrame.AbsolutePosition
+            local frameSize = MainFrame.AbsoluteSize
+            if pos.X >= framePos.X and pos.X <= framePos.X + frameSize.X and pos.Y >= framePos.Y and pos.Y <= framePos.Y + frameSize.Y then
+                dragging = true
+                dragStart = pos
+                startPos = MainFrame.Position
+            end
+        end
     end
-    SpeedFrame.Visible = false
 end)
 
--- High Jump Frame
-local JumpFrame = Instance.new("Frame")
-JumpFrame.Size = UDim2.new(0, 150, 0, 80)
-JumpFrame.Position = UDim2.new(0.5, -75, 0.5, -40)
-JumpFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-JumpFrame.BorderSizePixel = 0
-JumpFrame.Visible = false
-JumpFrame.Parent = ScreenGui
-
-local JumpLabel = Instance.new("TextLabel")
-JumpLabel.Size = UDim2.new(1, 0, 0, 20)
-JumpLabel.Text = "Custom Jump Height"
-JumpLabel.TextColor3 = Color3.new(1, 1, 1)
-JumpLabel.BackgroundTransparency = 1
-JumpLabel.TextSize = 12
-JumpLabel.Parent = JumpFrame
-
-local JumpTextBox = Instance.new("TextBox")
-JumpTextBox.Size = UDim2.new(1, 0, 0, 20)
-JumpTextBox.Position = UDim2.new(0, 0, 0, 20)
-JumpTextBox.Text = "50" -- Default jump height
-JumpTextBox.TextColor3 = Color3.new(1, 1, 1)
-JumpTextBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-JumpTextBox.TextSize = 12
-JumpTextBox.Parent = JumpFrame
-
-local ApplyJumpButton = Instance.new("TextButton")
-ApplyJumpButton.Size = UDim2.new(1, 0, 0, 20)
-ApplyJumpButton.Position = UDim2.new(0, 0, 0, 40)
-ApplyJumpButton.Text = "Apply"
-ApplyJumpButton.TextColor3 = Color3.new(1, 1, 1)
-ApplyJumpButton.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-ApplyJumpButton.TextSize = 12
-ApplyJumpButton.Parent = JumpFrame
-ApplyJumpButton.MouseButton1Click:Connect(function()
-    local jumpPower = tonumber(JumpTextBox.Text)
-    if jumpPower and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.JumpPower = jumpPower -- No limit
-        LocalPlayer.Character.Humanoid.JumpHeight = jumpPower / 2 -- Adjust for Roblox's JumpHeight
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
-    JumpFrame.Visible = false
 end)
 
--- Teleport Frame
-local TeleportFrame = Instance.new("Frame")
-TeleportFrame.Size = UDim2.new(0, 150, 0, 80)
-TeleportFrame.Position = UDim2.new(0.5, -75, 0.5, -40)
-TeleportFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-TeleportFrame.BorderSizePixel = 0
-TeleportFrame.Visible = false
-TeleportFrame.Parent = ScreenGui
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
 
-local TpLabel = Instance.new("TextLabel")
-TpLabel.Size = UDim2.new(1, 0, 0, 20)
-TpLabel.Text = "Player UserId"
-TpLabel.TextColor3 = Color3.new(1, 1, 1)
-TpLabel.BackgroundTransparency = 1
-TpLabel.TextSize = 12
-TpLabel.Parent = TeleportFrame
+-- Khung Tốc độ
+local KhungTocDo = Instance.new("Frame")
+KhungTocDo.Size = UDim2.new(0, 150, 0, 80)
+KhungTocDo.Position = UDim2.new(0.5, -75, 0.5, -40)
+KhungTocDo.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+KhungTocDo.BorderSizePixel = 0
+KhungTocDo.Visible = false
+KhungTocDo.Parent = ScreenGui
+local TocDoCorner = Instance.new("UICorner")
+TocDoCorner.CornerRadius = UDim.new(0, 8)
+TocDoCorner.Parent = KhungTocDo
+local TocDoStroke = Instance.new("UIStroke")
+TocDoStroke.Color = Color3.fromRGB(50, 50, 50)
+TocDoStroke.Thickness = 2
+TocDoStroke.Parent = KhungTocDo
 
-local TpTextBox = Instance.new("TextBox")
-TpTextBox.Size = UDim2.new(1, 0, 0, 20)
-TpTextBox.Position = UDim2.new(0, 0, 0, 20)
-TpTextBox.Text = ""
-TpTextBox.TextColor3 = Color3.new(1, 1, 1)
-TpTextBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-TpTextBox.TextSize = 12
-TpTextBox.Parent = TeleportFrame
+local NhacTocDo = Instance.new("TextLabel")
+NhacTocDo.Size = UDim2.new(1, 0, 0, 20)
+NhacTocDo.Text = "Tốc độ tùy chỉnh"
+NhacTocDo.TextColor3 = Color3.fromRGB(255, 255, 255)
+NhacTocDo.BackgroundTransparency = 1
+NhacTocDo.TextSize = 12
+NhacTocDo.Parent = KhungTocDo
 
-local ApplyTpButton = Instance.new("TextButton")
-ApplyTpButton.Size = UDim2.new(1, 0, 0, 20)
-ApplyTpButton.Position = UDim2.new(0, 0, 0, 40)
-ApplyTpButton.Text = "Teleport"
-ApplyTpButton.TextColor3 = Color3.new(1, 1, 1)
-ApplyTpButton.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-ApplyTpButton.TextSize = 12
-ApplyTpButton.Parent = TeleportFrame
-ApplyTpButton.MouseButton1Click:Connect(function()
-    local userId = tonumber(TpTextBox.Text)
+local ONhapTocDo = Instance.new("TextBox")
+ONhapTocDo.Size = UDim2.new(1, 0, 0, 20)
+ONhapTocDo.Position = UDim2.new(0, 0, 0, 20)
+ONhapTocDo.Text = "16" -- Tốc độ mặc định
+ONhapTocDo.TextColor3 = Color3.fromRGB(255, 255, 255)
+ONhapTocDo.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ONhapTocDo.TextSize = 12
+ONhapTocDo.Parent = KhungTocDo
+
+local NutApDungTocDo = Instance.new("TextButton")
+NutApDungTocDo.Size = UDim2.new(1, 0, 0, 20)
+NutApDungTocDo.Position = UDim2.new(0, 0, 0, 40)
+NutApDungTocDo.Text = "Áp dụng"
+NutApDungTocDo.TextColor3 = Color3.fromRGB(255, 255, 255)
+NutApDungTocDo.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+NutApDungTocDo.TextSize = 12
+NutApDungTocDo.Parent = KhungTocDo
+NutApDungTocDo.MouseButton1Click:Connect(function()
+    local tocdo = tonumber(ONhapTocDo.Text)
+    if tocdo and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = tocdo -- Không giới hạn
+    end
+    KhungTocDo.Visible = false
+end)
+
+-- Khung Nhảy cao
+local KhungNhayCao = Instance.new("Frame")
+KhungNhayCao.Size = UDim2.new(0, 150, 0, 80)
+KhungNhayCao.Position = UDim2.new(0.5, -75, 0.5, -40)
+KhungNhayCao.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+KhungNhayCao.BorderSizePixel = 0
+KhungNhayCao.Visible = false
+KhungNhayCao.Parent = ScreenGui
+local NhayCaoCorner = Instance.new("UICorner")
+NhayCaoCorner.CornerRadius = UDim.new(0, 8)
+NhayCaoCorner.Parent = KhungNhayCao
+local NhayCaoStroke = Instance.new("UIStroke")
+NhayCaoStroke.Color = Color3.fromRGB(50, 50, 50)
+NhayCaoStroke.Thickness = 2
+NhayCaoStroke.Parent = KhungNhayCao
+
+local NhacNhayCao = Instance.new("TextLabel")
+NhacNhayCao.Size = UDim2.new(1, 0, 0, 20)
+NhacNhayCao.Text = "Độ cao nhảy"
+NhacNhayCao.TextColor3 = Color3.fromRGB(255, 255, 255)
+NhacNhayCao.BackgroundTransparency = 1
+NhacNhayCao.TextSize = 12
+NhacNhayCao.Parent = KhungNhayCao
+
+local ONhapNhayCao = Instance.new("TextBox")
+ONhapNhayCao.Size = UDim2.new(1, 0, 0, 20)
+ONhapNhayCao.Position = UDim2.new(0, 0, 0, 20)
+ONhapNhayCao.Text = "50" -- Độ cao nhảy mặc định
+ONhapNhayCao.TextColor3 = Color3.fromRGB(255, 255, 255)
+ONhapNhayCao.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ONhapNhayCao.TextSize = 12
+ONhapNhayCao.Parent = KhungNhayCao
+
+local NutApDungNhayCao = Instance.new("TextButton")
+NutApDungNhayCao.Size = UDim2.new(1, 0, 0, 20)
+NutApDungNhayCao.Position = UDim2.new(0, 0, 0, 40)
+NutApDungNhayCao.Text = "Áp dụng"
+NutApDungNhayCao.TextColor3 = Color3.fromRGB(255, 255, 255)
+NutApDungNhayCao.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+NutApDungNhayCao.TextSize = 12
+NutApDungNhayCao.Parent = KhungNhayCao
+NutApDungNhayCao.MouseButton1Click:Connect(function()
+    local doCaoNhay = tonumber(ONhapNhayCao.Text)
+    if doCaoNhay and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.JumpPower = doCaoNhay -- Không giới hạn
+        LocalPlayer.Character.Humanoid.JumpHeight = doCaoNhay / 2
+    end
+    KhungNhayCao.Visible = false
+end)
+
+-- Khung Bay
+local KhungBay = Instance.new("Frame")
+KhungBay.Size = UDim2.new(0, 150, 0, 80)
+KhungBay.Position = UDim2.new(0.5, -75, 0.5, -40)
+KhungBay.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+KhungBay.BorderSizePixel = 0
+KhungBay.Visible = false
+KhungBay.Parent = ScreenGui
+local BayCorner = Instance.new("UICorner")
+BayCorner.CornerRadius = UDim.new(0, 8)
+BayCorner.Parent = KhungBay
+local BayStroke = Instance.new("UIStroke")
+BayStroke.Color = Color3.fromRGB(50, 50, 50)
+BayStroke.Thickness = 2
+BayStroke.Parent = KhungBay
+
+local NhacBay = Instance.new("TextLabel")
+NhacBay.Size = UDim2.new(1, 0, 0, 20)
+NhacBay.Text = "Tốc độ bay"
+NhacBay.TextColor3 = Color3.fromRGB(255, 255, 255)
+NhacBay.BackgroundTransparency = 1
+NhacBay.TextSize = 12
+NhacBay.Parent = KhungBay
+
+local ONhapBay = Instance.new("TextBox")
+ONhapBay.Size = UDim2.new(1, 0, 0, 20)
+ONhapBay.Position = UDim2.new(0, 0, 0, 20)
+ONhapBay.Text = "50" -- Tốc độ bay mặc định
+ONhapBay.TextColor3 = Color3.fromRGB(255, 255, 255)
+ONhapBay.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ONhapBay.TextSize = 12
+ONhapBay.Parent = KhungBay
+
+local NutBatTatBay = Instance.new("TextButton")
+NutBatTatBay.Size = UDim2.new(1, 0, 0, 20)
+NutBatTatBay.Position = UDim2.new(0, 0, 0, 40)
+NutBatTatBay.Text = "Bật/Tắt Bay"
+NutBatTatBay.TextColor3 = Color3.fromRGB(255, 255, 255)
+NutBatTatBay.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+NutBatTatBay.TextSize = 12
+NutBatTatBay.Parent = KhungBay
+
+-- Logic Bay
+local dangBay = false
+local tocDoBay = 50
+local bodyVelocity = nil
+local bodyGyro = nil
+
+local function BatTatBay()
+    dangBay = not dangBay
+    local nhanVat = LocalPlayer.Character
+    local humanoidRootPart = nhanVat and nhanVat:FindFirstChild("HumanoidRootPart")
+    
+    if dangBay and humanoidRootPart then
+        bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.Parent = humanoidRootPart
+        
+        bodyGyro = Instance.new("BodyGyro")
+        bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bodyGyro.CFrame = humanoidRootPart.CFrame
+        bodyGyro.Parent = humanoidRootPart
+        
+        spawn(function()
+            while dangBay and humanoidRootPart and humanoidRootPart.Parent do
+                local camera = workspace.CurrentCamera
+                local huongDiChuyen = Vector3.new(0, 0, 0)
+                
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                    huongDiChuyen = huongDiChuyen + camera.CFrame.LookVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                    huongDiChuyen = huongDiChuyen - camera.CFrame.LookVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                    huongDiChuyen = huongDiChuyen - camera.CFrame.RightVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                    huongDiChuyen = huongDiChuyen + camera.CFrame.RightVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                    huongDiChuyen = huongDiChuyen + Vector3.new(0, 1, 0)
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+                    huongDiChuyen = huongDiChuyen - Vector3.new(0, 1, 0)
+                end
+                
+                bodyVelocity.Velocity = huongDiChuyen * tocDoBay
+                bodyGyro.CFrame = camera.CFrame
+                RunService.RenderStepped:Wait()
+            end
+            if bodyVelocity then bodyVelocity:Destroy() end
+            if bodyGyro then bodyGyro:Destroy() end
+        end)
+    else
+        if bodyVelocity then bodyVelocity:Destroy() end
+        if bodyGyro then bodyGyro:Destroy() end
+    end
+end
+
+NutBatTatBay.MouseButton1Click:Connect(function()
+    tocDoBay = tonumber(ONhapBay.Text) or 50
+    BatTatBay()
+    KhungBay.Visible = false
+end)
+
+-- Khung Dịch chuyển
+local KhungDichChuyen = Instance.new("Frame")
+KhungDichChuyen.Size = UDim2.new(0, 150, 0, 80)
+KhungDichChuyen.Position = UDim2.new(0.5, -75, 0.5, -40)
+KhungDichChuyen.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+KhungDichChuyen.BorderSizePixel = 0
+KhungDichChuyen.Visible = false
+KhungDichChuyen.Parent = ScreenGui
+local DichChuyenCorner = Instance.new("UICorner")
+DichChuyenCorner.CornerRadius = UDim.new(0, 8)
+DichChuyenCorner.Parent = KhungDichChuyen
+local DichChuyenStroke = Instance.new("UIStroke")
+DichChuyenStroke.Color = Color3.fromRGB(50, 50, 50)
+DichChuyenStroke.Thickness = 2
+DichChuyenStroke.Parent = KhungDichChuyen
+
+local NhacDichChuyen = Instance.new("TextLabel")
+NhacDichChuyen.Size = UDim2.new(1, 0, 0, 20)
+NhacDichChuyen.Text = "UserId người chơi"
+NhacDichChuyen.TextColor3 = Color3.fromRGB(255, 255, 255)
+NhacDichChuyen.BackgroundTransparency = 1
+NhacDichChuyen.TextSize = 12
+NhacDichChuyen.Parent = KhungDichChuyen
+
+local ONhapDichChuyen = Instance.new("TextBox")
+ONhapDichChuyen.Size = UDim2.new(1, 0, 0, 20)
+ONhapDichChuyen.Position = UDim2.new(0, 0, 0, 20)
+ONhapDichChuyen.Text = ""
+ONhapDichChuyen.TextColor3 = Color3.fromRGB(255, 255, 255)
+ONhapDichChuyen.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ONhapDichChuyen.TextSize = 12
+ONhapDichChuyen.Parent = KhungDichChuyen
+
+local NutDichChuyen = Instance.new("TextButton")
+NutDichChuyen.Size = UDim2.new(1, 0, 0, 20)
+NutDichChuyen.Position = UDim2.new(0, 0, 0, 40)
+NutDichChuyen.Text = "Dịch chuyển"
+NutDichChuyen.TextColor3 = Color3.fromRGB(255, 255, 255)
+NutDichChuyen.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+NutDichChuyen.TextSize = 12
+NutDichChuyen.Parent = KhungDichChuyen
+NutDichChuyen.MouseButton1Click:Connect(function()
+    local userId = tonumber(ONhapDichChuyen.Text)
     if userId then
         for _, player in ipairs(Players:GetPlayers()) do
             if player.UserId == userId then
@@ -172,35 +367,82 @@ ApplyTpButton.MouseButton1Click:Connect(function()
             end
         end
     end
-    TeleportFrame.Visible = false
+    KhungDichChuyen.Visible = false
 end)
 
--- Buttons
-CreateButton("Run", function()
-    SpeedFrame.Visible = true
+-- Logic Noclip
+local dangNoclip = false
+local noclipConnection = nil
+
+local function BatTatNoclip()
+    dangNoclip = not dangNoclip
+    local nhanVat = LocalPlayer.Character
+    if nhanVat then
+        if dangNoclip then
+            -- Tạo nhóm va chạm riêng
+            PhysicsService:CreateCollisionGroup("Noclip")
+            PhysicsService:CollisionGroupSetCollidable("Noclip", "Default", false)
+            
+            for _, part in ipairs(nhanVat:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                    PhysicsService:SetPartCollisionGroup(part, "Noclip")
+                end
+            end
+            
+            -- Theo dõi khi nhân vật thêm bộ phận mới
+            noclipConnection = nhanVat.DescendantAdded:Connect(function(descendant)
+                if dangNoclip and descendant:IsA("BasePart") then
+                    descendant.CanCollide = false
+                    PhysicsService:SetPartCollisionGroup(descendant, "Noclip")
+                end
+            end)
+        else
+            -- Khôi phục va chạm
+            for _, part in ipairs(nhanVat:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                    PhysicsService:SetPartCollisionGroup(part, "Default")
+                end
+            end
+            if noclipConnection then
+                noclipConnection:Disconnect()
+                noclipConnection = nil
+            end
+        end
+    end
+end
+
+-- Các nút
+TaoNut("Tốc độ", function()
+    KhungTocDo.Visible = true
 end)
 
-CreateButton("High Jump", function()
-    JumpFrame.Visible = true
+TaoNut("Nhảy cao", function()
+    KhungNhayCao.Visible = true
 end)
 
-local isInvisible = false
-CreateButton("Invisible", function()
-    isInvisible = not isInvisible
+TaoNut("Bay", function()
+    KhungBay.Visible = true
+end)
+
+local dangTangHinh = false
+TaoNut("Tàng hình", function()
+    dangTangHinh = not dangTangHinh
     if LocalPlayer.Character then
         for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
             if part:IsA("BasePart") or part:IsA("Decal") then
-                part.Transparency = isInvisible and 1 or 0
+                part.Transparency = dangTangHinh and 1 or 0
             end
         end
     end
 end)
 
-CreateButton("Teleport", function()
-    TeleportFrame.Visible = true
+TaoNut("Dịch chuyển", function()
+    KhungDichChuyen.Visible = true
 end)
 
-CreateButton("Server Hop (Low Pop)", function()
+TaoNut("Chuyển server", function()
     local placeId = game.PlaceId
     local servers = {}
     local cursor = ""
@@ -221,6 +463,10 @@ CreateButton("Server Hop (Low Pop)", function()
     end
 end)
 
-CreateButton("Toggle Menu", function()
+TaoNut("Noclip", function()
+    BatTatNoclip()
+end)
+
+TaoNut("Bật/Tắt Menu", function()
     MainFrame.Visible = not MainFrame.Visible
 end)
