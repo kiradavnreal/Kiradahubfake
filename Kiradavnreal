@@ -1,6 +1,4 @@
--- Kirada Hub Script (Tối ưu hóa, xóa Anti AFK và Auto Win)
--- Tạo bởi Grok
-
+-- Khởi tạo dịch vụ và thông tin người chơi
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
@@ -9,214 +7,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
--- Thiết lập GUI giống Banana Hub
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "KiradaHub"
-ScreenGui.ResetOnSpawn = false
-
-local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 600, 0, 300)
-MainFrame.Position = UDim2.new(0.5, -300, 0.5, -150)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Visible = false
-MainFrame.BackgroundTransparency = 1
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
-
-local Shadow = Instance.new("ImageLabel", MainFrame)
-Shadow.Size = UDim2.new(1, 20, 1, 20)
-Shadow.Position = UDim2.new(0, -10, 0, -10)
-Shadow.BackgroundTransparency = 1
-Shadow.Image = "rbxassetid://1316045217"
-Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-Shadow.ImageTransparency = 0.7
-Shadow.ScaleType = Enum.ScaleType.Slice
-Shadow.SliceCenter = Rect.new(10, 10, 10, 10)
-
--- Tab Bar
-local TabBar = Instance.new("Frame", MainFrame)
-TabBar.Size = UDim2.new(1, 0, 0, 40)
-TabBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-local TabBarLayout = Instance.new("UIListLayout", TabBar)
-TabBarLayout.FillDirection = Enum.FillDirection.Horizontal
-TabBarLayout.Padding = UDim.new(0, 10)
-
-local Tab1Button = Instance.new("TextButton", TabBar)
-Tab1Button.Size = UDim2.new(0, 150, 1, 0)
-Tab1Button.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
-Tab1Button.Text = "Features"
-Tab1Button.TextColor3 = Color3.fromRGB(0, 0, 0)
-Tab1Button.TextSize = 18
-Tab1Button.Font = Enum.Font.GothamBold
-
-local Tab2Button = Instance.new("TextButton", TabBar)
-Tab2Button.Size = UDim2.new(0, 150, 1, 0)
-Tab2Button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-Tab2Button.Text = "Scripts"
-Tab2Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-Tab2Button.TextSize = 18
-Tab2Button.Font = Enum.Font.GothamBold
-
--- Content Frame
-local ContentFrame = Instance.new("Frame", MainFrame)
-ContentFrame.Size = UDim2.new(1, 0, 1, -40)
-ContentFrame.Position = UDim2.new(0, 0, 0, 40)
-ContentFrame.BackgroundTransparency = 1
-
--- Tab 1: Features (nút ngang)
-local FeaturesScrolling = Instance.new("ScrollingFrame", ContentFrame)
-FeaturesScrolling.Size = UDim2.new(1, 0, 1, 0)
-FeaturesScrolling.BackgroundTransparency = 1
-FeaturesScrolling.ScrollBarThickness = 4
-FeaturesScrolling.ScrollBarImageColor3 = Color3.fromRGB(255, 193, 7)
-FeaturesScrolling.CanvasSize = UDim2.new(2, 0, 0, 0)
-
-local FeaturesLayout = Instance.new("UIListLayout", FeaturesScrolling)
-FeaturesLayout.FillDirection = Enum.FillDirection.Horizontal
-FeaturesLayout.Padding = UDim.new(0, 10)
-FeaturesLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-
--- Tab 2: Scripts
-local ScriptsFrame = Instance.new("Frame", ContentFrame)
-ScriptsFrame.Size = UDim2.new(1, 0, 1, 0)
-ScriptsFrame.BackgroundTransparency = 1
-ScriptsFrame.Visible = false
-
-local ScriptsLayout = Instance.new("UIListLayout", ScriptsFrame)
-ScriptsLayout.FillDirection = Enum.FillDirection.Vertical
-ScriptsLayout.Padding = UDim.new(0, 10)
-ScriptsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-local RunCombinedButton = Instance.new("TextButton", ScriptsFrame)
-RunCombinedButton.Size = UDim2.new(0, 260, 0, 40)
-RunCombinedButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-RunCombinedButton.Text = "Run Kirada Premium & BTH"
-RunCombinedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-RunCombinedButton.TextSize = 18
-RunCombinedButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", RunCombinedButton).CornerRadius = UDim.new(0, 6)
-
--- Toggle Menu Button
-local ToggleMenuButton = Instance.new("TextButton", ScreenGui)
-ToggleMenuButton.Size = UDim2.new(0, 60, 0, 60)
-ToggleMenuButton.Position = UDim2.new(0, 10, 0, 10)
-ToggleMenuButton.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
-ToggleMenuButton.Text = "☰"
-ToggleMenuButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-ToggleMenuButton.TextSize = 28
-ToggleMenuButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", ToggleMenuButton).CornerRadius = UDim.new(0, 30)
-
--- Features
-local TitleLabel = Instance.new("TextLabel", FeaturesScrolling)
-TitleLabel.Size = UDim2.new(0, 150, 0, 40)
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "Kirada Hub"
-TitleLabel.TextColor3 = Color3.fromRGB(255, 193, 7)
-TitleLabel.TextSize = 26
-TitleLabel.Font = Enum.Font.GothamBlack
-
-local MovementFrame = Instance.new("Frame", FeaturesScrolling)
-MovementFrame.Size = UDim2.new(0, 180, 0, 100)
-MovementFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-MovementFrame.BackgroundTransparency = 0.3
-Instance.new("UICorner", MovementFrame).CornerRadius = UDim.new(0, 8)
-
-local MovementLayout = Instance.new("UIListLayout", MovementFrame)
-MovementLayout.FillDirection = Enum.FillDirection.Vertical
-MovementLayout.Padding = UDim.new(0, 10)
-MovementLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-local SpeedLabel = Instance.new("TextLabel", MovementFrame)
-SpeedLabel.Size = UDim2.new(0, 160, 0, 20)
-SpeedLabel.BackgroundTransparency = 1
-SpeedLabel.Text = "Tốc độ (Max 1000):"
-SpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-SpeedLabel.TextSize = 16
-SpeedLabel.Font = Enum.Font.Gotham
-
-local SpeedTextBox = Instance.new("TextBox", MovementFrame)
-SpeedTextBox.Size = UDim2.new(0, 140, 0, 30)
-SpeedTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-SpeedTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedTextBox.TextSize = 16
-SpeedTextBox.Font = Enum.Font.Gotham
-SpeedTextBox.Text = "16"
-Instance.new("UICorner", SpeedTextBox).CornerRadius = UDim.new(0, 6)
-
-local JumpLabel = Instance.new("TextLabel", MovementFrame)
-JumpLabel.Size = UDim2.new(0, 160, 0, 20)
-JumpLabel.BackgroundTransparency = 1
-JumpLabel.Text = "Nhảy (Max 500):"
-JumpLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-JumpLabel.TextSize = 16
-JumpLabel.Font = Enum.Font.Gotham
-
-local JumpTextBox = Instance.new("TextBox", MovementFrame)
-JumpTextBox.Size = UDim2.new(0, 140, 0, 30)
-JumpTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-JumpTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-JumpTextBox.TextSize = 16
-JumpTextBox.Font = Enum.Font.Gotham
-JumpTextBox.Text = "50"
-Instance.new("UICorner", JumpTextBox).CornerRadius = UDim.new(0, 6)
-
-local ToggleButton = Instance.new("TextButton", FeaturesScrolling)
-ToggleButton.Size = UDim2.new(0, 150, 0, 40)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
-ToggleButton.Text = "Bật/Tắt Script: TẮT"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.TextSize = 18
-ToggleButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0, 6)
-
-local RunNoclipButton = Instance.new("TextButton", FeaturesScrolling)
-RunNoclipButton.Size = UDim2.new(0, 150, 0, 40)
-RunNoclipButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-RunNoclipButton.Text = "Chạy xuyên tường"
-RunNoclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-RunNoclipButton.TextSize = 18
-RunNoclipButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", RunNoclipButton).CornerRadius = UDim.new(0, 6)
-
-local RunNormalButton = Instance.new("TextButton", FeaturesScrolling)
-RunNormalButton.Size = UDim2.new(0, 150, 0, 40)
-RunNormalButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-RunNormalButton.Text = "Chạy không xuyên"
-RunNormalButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-RunNormalButton.TextSize = 18
-RunNormalButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", RunNormalButton).CornerRadius = UDim.new(0, 6)
-
-local StopRunButton = Instance.new("TextButton", FeaturesScrolling)
-StopRunButton.Size = UDim2.new(0, 150, 0, 40)
-StopRunButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-StopRunButton.Text = "Tắt chạy"
-StopRunButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-StopRunButton.TextSize = 18
-StopRunButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", StopRunButton).CornerRadius = UDim.new(0, 6)
-
-local WaterWalkButton = Instance.new("TextButton", FeaturesScrolling)
-WaterWalkButton.Size = UDim2.new(0, 150, 0, 40)
-WaterWalkButton.BackgroundColor3 = Color3.fromRGB(0, 188, 212)
-WaterWalkButton.Text = "Đi trên nước: TẮT"
-WaterWalkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-WaterWalkButton.TextSize = 18
-WaterWalkButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", WaterWalkButton).CornerRadius = UDim.new(0, 6)
-
-local EspButton = Instance.new("TextButton", FeaturesScrolling)
-EspButton.Size = UDim2.new(0, 150, 0, 40)
-EspButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-EspButton.Text = "ESP: TẮT"
-EspButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-EspButton.TextSize = 18
-EspButton.Font = Enum.Font.GothamBold
-Instance.new("UICorner", EspButton).CornerRadius = UDim.new(0, 6)
-
--- Biến
+-- Biến toàn cục
 local isScriptEnabled = false
 local originalSpeed = humanoid.WalkSpeed
 local originalJump = humanoid.JumpPower
@@ -224,16 +15,230 @@ local noclipEnabled = false
 local espEnabled = false
 local waterWalkEnabled = false
 local connections = {}
+-- Thiết lập ScreenGui
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+ScreenGui.Name = "KiradaHub"
+ScreenGui.ResetOnSpawn = false
 
--- Tối ưu hàm
+-- MainFrame
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 400, 0, 250)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Visible = false
+MainFrame.BackgroundTransparency = 0.1
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+
+-- Hiệu ứng bóng
+local Shadow = Instance.new("ImageLabel", MainFrame)
+Shadow.Size = UDim2.new(1, 20, 1, 20)
+Shadow.Position = UDim2.new(0, -10, 0, -10)
+Shadow.BackgroundTransparency = 1
+Shadow.Image = "rbxassetid://1316045217"
+Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.ImageTransparency = 0.6
+Shadow.ScaleType = Enum.ScaleType.Slice
+Shadow.SliceCenter = Rect.new(10, 10, 10, 10)
+
+-- Nút toggle menu
+local ToggleMenuButton = Instance.new("TextButton", ScreenGui)
+ToggleMenuButton.Size = UDim2.new(0, 50, 0, 50)
+ToggleMenuButton.Position = UDim2.new(0, 10, 0, 10)
+ToggleMenuButton.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
+ToggleMenuButton.Text = "☰"
+ToggleMenuButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+ToggleMenuButton.TextSize = 24
+ToggleMenuButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", ToggleMenuButton).CornerRadius = UDim.new(0, 25)
+-- Tab Bar
+local TabBar = Instance.new("Frame", MainFrame)
+TabBar.Size = UDim2.new(1, 0, 0, 30)
+TabBar.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+local TabBarLayout = Instance.new("UIListLayout", TabBar)
+TabBarLayout.FillDirection = Enum.FillDirection.Horizontal
+TabBarLayout.Padding = UDim.new(0, 5)
+
+local Tab1Button = Instance.new("TextButton", TabBar)
+Tab1Button.Size = UDim2.new(0, 100, 1, 0)
+Tab1Button.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
+Tab1Button.Text = "Features"
+Tab1Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+Tab1Button.TextSize = 14
+Tab1Button.Font = Enum.Font.GothamBold
+Instance.new("UICorner", Tab1Button).CornerRadius = UDim.new(0, 6)
+
+local Tab2Button = Instance.new("TextButton", TabBar)
+Tab2Button.Size = UDim2.new(0, 100, 1, 0)
+Tab2Button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+Tab2Button.Text = "Scripts"
+Tab2Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Tab2Button.TextSize = 14
+Tab2Button.Font = Enum.Font.GothamBold
+Instance.new("UICorner", Tab2Button).CornerRadius = UDim.new(0, 6)
+
+-- Content Frame
+local ContentFrame = Instance.new("Frame", MainFrame)
+ContentFrame.Size = UDim2.new(1, 0, 1, -30)
+ContentFrame.Position = UDim2.new(0, 0, 0, 30)
+ContentFrame.BackgroundTransparency = 1
+-- Tab 1: Features
+local FeaturesScrolling = Instance.new("ScrollingFrame", ContentFrame)
+FeaturesScrolling.Size = UDim2.new(1, 0, 1, 0)
+FeaturesScrolling.BackgroundTransparency = 1
+FeaturesScrolling.ScrollBarThickness = 3
+FeaturesScrolling.ScrollBarImageColor3 = Color3.fromRGB(255, 193, 7)
+FeaturesScrolling.CanvasSize = UDim2.new(2, 0, 0, 0)
+
+local FeaturesLayout = Instance.new("UIListLayout", FeaturesScrolling)
+FeaturesLayout.FillDirection = Enum.FillDirection.Horizontal
+FeaturesLayout.Padding = UDim.new(0, 8)
+FeaturesLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+
+local TitleLabel = Instance.new("TextLabel", FeaturesScrolling)
+TitleLabel.Size = UDim2.new(0, 120, 0, 35)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "Kirada Hub"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 193, 7)
+TitleLabel.TextSize = 22
+TitleLabel.Font = Enum.Font.GothamBlack
+
+local MovementFrame = Instance.new("Frame", FeaturesScrolling)
+MovementFrame.Size = UDim2.new(0, 150, 0, 90)
+MovementFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+MovementFrame.BackgroundTransparency = 0.2
+Instance.new("UICorner", MovementFrame).CornerRadius = UDim.new(0, 8)
+
+local MovementLayout = Instance.new("UIListLayout", MovementFrame)
+MovementLayout.FillDirection = Enum.FillDirection.Vertical
+MovementLayout.Padding = UDim.new(0, 8)
+MovementLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+local SpeedLabel = Instance.new("TextLabel", MovementFrame)
+SpeedLabel.Size = UDim2.new(0, 130, 0, 18)
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.Text = "Tốc độ (Max 1000):"
+SpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+SpeedLabel.TextSize = 14
+SpeedLabel.Font = Enum.Font.Gotham
+
+local SpeedTextBox = Instance.new("TextBox", MovementFrame)
+SpeedTextBox.Size = UDim2.new(0, 120, 0, 25)
+SpeedTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+SpeedTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedTextBox.TextSize = 14
+SpeedTextBox.Font = Enum.Font.Gotham
+SpeedTextBox.Text = "16"
+Instance.new("UICorner", SpeedTextBox).CornerRadius = UDim.new(0, 6)
+
+local JumpLabel = Instance.new("TextLabel", MovementFrame)
+JumpLabel.Size = UDim2.new(0, 130, 0, 18)
+JumpLabel.BackgroundTransparency = 1
+JumpLabel.Text = "Nhảy (Max 500):"
+JumpLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+JumpLabel.TextSize = 14
+JumpLabel.Font = Enum.Font.Gotham
+
+local JumpTextBox = Instance.new("TextBox", MovementFrame)
+JumpTextBox.Size = UDim2.new(0, 120, 0, 25)
+JumpTextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+JumpTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpTextBox.TextSize = 14
+JumpTextBox.Font = Enum.Font.Gotham
+JumpTextBox.Text = "50"
+Instance.new("UICorner", JumpTextBox).CornerRadius = UDim.new(0, 6)
+
+local ToggleButton = Instance.new("TextButton", FeaturesScrolling)
+ToggleButton.Size = UDim2.new(0, 120, 0, 35)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+ToggleButton.Text = "Bật/Tắt Script: TẮT"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 16
+ToggleButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0, 6)
+
+local RunNoclipButton = Instance.new("TextButton", FeaturesScrolling)
+RunNoclipButton.Size = UDim2.new(0, 120, 0, 35)
+RunNoclipButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+RunNoclipButton.Text = "Chạy xuyên tường"
+RunNoclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RunNoclipButton.TextSize = 16
+RunNoclipButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", RunNoclipButton).CornerRadius = UDim.new(0, 6)
+
+local RunNormalButton = Instance.new("TextButton", FeaturesScrolling)
+RunNormalButton.Size = UDim2.new(0, 120, 0, 35)
+RunNormalButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+RunNormalButton.Text = "Chạy không xuyên"
+RunNormalButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RunNormalButton.TextSize = 16
+RunNormalButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", RunNormalButton).CornerRadius = UDim.new(0, 6)
+
+local StopRunButton = Instance.new("TextButton", FeaturesScrolling)
+StopRunButton.Size = UDim2.new(0, 120, 0, 35)
+StopRunButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+StopRunButton.Text = "Tắt chạy"
+StopRunButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+StopRunButton.TextSize = 16
+StopRunButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", StopRunButton).CornerRadius = UDim.new(0, 6)
+
+local WaterWalkButton = Instance.new("TextButton", FeaturesScrolling)
+WaterWalkButton.Size = UDim2.new(0, 120, 0, 35)
+WaterWalkButton.BackgroundColor3 = Color3.fromRGB(0, 188, 212)
+WaterWalkButton.Text = "Đi trên nước: TẮT"
+WaterWalkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+WaterWalkButton.TextSize = 16
+WaterWalkButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", WaterWalkButton).CornerRadius = UDim.new(0, 6)
+
+local EspButton = Instance.new("TextButton", FeaturesScrolling)
+EspButton.Size = UDim2.new(0, 120, 0, 35)
+EspButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+EspButton.Text = "ESP: TẮT"
+EspButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+EspButton.TextSize = 16
+EspButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", EspButton).CornerRadius = UDim.new(0, 6)-- Tab 2: Scripts
+local ScriptsFrame = Instance.new("Frame", ContentFrame)
+ScriptsFrame.Size = UDim2.new(1, 0, 1, 0)
+ScriptsFrame.BackgroundTransparency = 1
+ScriptsFrame.Visible = false
+
+local ScriptsLayout = Instance.new("UIListLayout", ScriptsFrame)
+ScriptsLayout.FillDirection = Enum.FillDirection.Vertical
+ScriptsLayout.Padding = UDim.new(0, 8)
+ScriptsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+local RunKiradaPremiumButton = Instance.new("TextButton", ScriptsFrame)
+RunKiradaPremiumButton.Size = UDim2.new(0, 180, 0, 35)
+RunKiradaPremiumButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+RunKiradaPremiumButton.Text = "Run Kirada Premium"
+RunKiradaPremiumButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RunKiradaPremiumButton.TextSize = 16
+RunKiradaPremiumButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", RunKiradaPremiumButton).CornerRadius = UDim.new(0, 6)
+
+local RunKiradaYeuBanButton = Instance.new("TextButton", ScriptsFrame)
+RunKiradaYeuBanButton.Size = UDim2.new(0, 180, 0, 35)
+RunKiradaYeuBanButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+RunKiradaYeuBanButton.Text = "Run Kirada Yeu Ban"
+RunKiradaYeuBanButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RunKiradaYeuBanButton.TextSize = 16
+RunKiradaYeuBanButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", RunKiradaYeuBanButton).CornerRadius = UDim.new(0, 6)-- Hàm toggle menu
 local function toggleMenu()
-    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Sine, MainFrame.Visible and Enum.EasingDirection.In or Enum.EasingDirection.Out)
-    local targetSize = MainFrame.Visible and UDim2.new(0, 600, 0, 0) or UDim2.new(0, 600, 0, 300)
-    TweenService:Create(MainFrame, tweenInfo, {BackgroundTransparency = MainFrame.Visible and 1 or 0, Size = targetSize}):Play()
-    wait(0.3)
+    local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quad, MainFrame.Visible and Enum.EasingDirection.In or Enum.EasingDirection.Out)
+    local targetSize = MainFrame.Visible and UDim2.new(0, 400, 0, 0) or UDim2.new(0, 400, 0, 250)
+    local targetTransparency = MainFrame.Visible and 1 or 0.1
+    TweenService:Create(MainFrame, tweenInfo, {Size = targetSize, BackgroundTransparency = targetTransparency}):Play()
+    wait(0.4)
     MainFrame.Visible = not MainFrame.Visible
 end
 
+-- Hàm hiệu ứng hover
 local function addHoverEffect(button)
     local originalColor = button.BackgroundColor3
     button.MouseEnter:Connect(function()
@@ -244,10 +249,12 @@ local function addHoverEffect(button)
     end)
 end
 
-for _, button in pairs({ToggleButton, RunNoclipButton, RunNormalButton, StopRunButton, WaterWalkButton, EspButton, RunCombinedButton, ToggleMenuButton, Tab1Button, Tab2Button}) do
+-- Áp dụng hiệu ứng hover cho tất cả nút
+for _, button in pairs({ToggleButton, RunNoclipButton, RunNormalButton, StopRunButton, WaterWalkButton, EspButton, RunKiradaPremiumButton, RunKiradaYeuBanButton, ToggleMenuButton, Tab1Button, Tab2Button}) do
     addHoverEffect(button)
 end
 
+-- Hàm chuyển đổi tab
 local function showTab(tab, button1, button2)
     FeaturesScrolling.Visible = (tab == 1)
     ScriptsFrame.Visible = (tab == 2)
@@ -255,9 +262,21 @@ local function showTab(tab, button1, button2)
     button2.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
 end
 
-Tab1Button.MouseButton1Click:Connect(function() showTab(1, Tab1Button, Tab2Button) end)
-Tab2Button.MouseButton1Click:Connect(function() showTab(2, Tab2Button, Tab1Button) end)
+-- Hàm xác thực tốc độ
+local function validateSpeed()
+    local speed = tonumber(SpeedTextBox.Text) or originalSpeed
+    speed = math.clamp(speed, 0, 1000)
+    SpeedTextBox.Text = tostring(speed)
+    return speed
+end
 
+-- Hàm xác thực nhảy
+local function validateJump()
+    local jump = tonumber(JumpTextBox.Text) or originalJump
+    jump = math.clamp(jump, 0, 500)
+    JumpTextBox.Text = tostring(jump)
+    return jump
+end-- Hàm bật/tắt script
 local function toggleScript()
     isScriptEnabled = not isScriptEnabled
     ToggleButton.Text = "Bật/Tắt Script: " .. (isScriptEnabled and "BẬT" or "TẮT")
@@ -271,20 +290,7 @@ local function toggleScript()
     end
 end
 
-local function validateSpeed()
-    local speed = tonumber(SpeedTextBox.Text) or originalSpeed
-    speed = math.clamp(speed, 0, 1000)
-    SpeedTextBox.Text = tostring(speed)
-    return speed
-end
-
-local function validateJump()
-    local jump = tonumber(JumpTextBox.Text) or originalJump
-    jump = math.clamp(jump, 0, 500)
-    JumpTextBox.Text = tostring(jump)
-    return jump
-end
-
+-- Hàm noclip
 local function enableNoclip()
     if noclipEnabled then return end
     noclipEnabled = true
@@ -307,6 +313,7 @@ local function disableNoclip()
     end
 end
 
+-- Hàm đi trên nước
 local function enableWaterWalk()
     if waterWalkEnabled then return end
     waterWalkEnabled = true
@@ -331,6 +338,7 @@ local function disableWaterWalk()
     if humanoid then humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming, true) end
 end
 
+-- Hàm ESP
 local function enableEsp()
     if espEnabled then return end
     espEnabled = true
@@ -398,14 +406,12 @@ local function disableEsp()
     end
 end
 
-local function runCombinedScripts()
+-- Hàm chạy script
+local function runKiradaPremium()
     spawn(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradapremium/refs/heads/main/Kiradapremium.lua"))()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradavnhub/refs/heads/main/Kiradavn.vietnam.kiradayeuban"))()
     end)
-end
-
--- Sự kiện
+end-- Sự kiện nút
 ToggleMenuButton.MouseButton1Click:Connect(toggleMenu)
 ToggleButton.MouseButton1Click:Connect(toggleScript)
 SpeedTextBox.FocusLost:Connect(function() if isScriptEnabled then humanoid.WalkSpeed = validateSpeed() end end)
@@ -439,13 +445,18 @@ EspButton.MouseButton1Click:Connect(function()
         end
     end
 end)
-RunCombinedButton.MouseButton1Click:Connect(runCombinedScripts)
+RunKiradaPremiumButton.MouseButton1Click:Connect(runKiradaPremium)
+RunKiradaYeuBanButton.MouseButton1Click:Connect(runKiradaYeuBan)
+Tab1Button.MouseButton1Click:Connect(function() showTab(1, Tab1Button, Tab2Button) end)
+Tab2Button.MouseButton1Click:Connect(function() showTab(2, Tab2Button, Tab1Button) end)
 
+-- Sự kiện phím tắt
 UserInputService.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.E then toggleScript()
     elseif input.KeyCode == Enum.KeyCode.Q then toggleMenu() end
 end)
 
+-- Sự kiện nhân vật tái sinh
 player.CharacterAdded:Connect(function(newChar)
     character = newChar
     humanoid = character:WaitForChild("Humanoid")
@@ -462,5 +473,12 @@ player.CharacterAdded:Connect(function(newChar)
     end
 end)
 
+-- Khởi động
 print("Kirada Hub tối ưu hóa và khởi động!")
 showTab(1, Tab1Button, Tab2Button)
+
+local function runKiradaYeuBan()
+    spawn(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradavnhub/refs/heads/main/Kiradavn.vietnam.kiradayeuban"))()
+    end)
+end
