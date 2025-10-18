@@ -470,3 +470,29 @@ end)
 TaoNut("Bật/Tắt Menu", function()
     MainFrame.Visible = not MainFrame.Visible
 end)
+-- Các nút trong menu
+TaoNut("Tốc độ", function()
+    KhungTocDo.Visible = true
+end)
+
+TaoNut("Nhảy cao", function()
+    KhungNhayCao.Visible = true
+end)
+
+TaoNut("Bay", function()
+    KhungBay.Visible = true
+end)
+
+TaoNut("Tàng hình", BatTatTangHinh)
+
+TaoNut("Dịch chuyển", function()
+    KhungDichChuyen.Visible = true
+end)
+
+TaoNut("Chuyển server", ChuyenServer)
+
+TaoNut("Noclip", BatTatNoclip)
+
+TaoNut("Bật/Tắt Menu", function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
