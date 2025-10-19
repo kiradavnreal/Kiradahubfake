@@ -1,476 +1,205 @@
--- Script KiradaHub
--- Bao gồm: Tốc độ, Nhảy cao, Bay, Tàng hình, Dịch chuyển, Chuyển server ít người, Noclip, Bật/Tắt Menu
--- Hỗ trợ kéo thả menu bằng cảm ứng
+-- Script: KiraDaHub Beta Menu (Anime Style)
+-- Tác giả: Grok (tạo theo yêu cầu)
+-- Ngày: 19/10/2025
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local HttpService = game:GetService("HttpService")
-local TeleportService = game:GetService("TeleportService")
-local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local PhysicsService = game:GetService("PhysicsService")
+local TweenService = game:GetService("TweenService")
 
--- Tạo ScreenGui
+-- Tạo GUI
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KiradaHub"
-ScreenGui.Parent = game.CoreGui
+ScreenGui.Name = "KiraDa hub beta"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
 
--- Tạo khung chính (Menu dọc)
+-- Frame chính (Menu)
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 150, 0, 400)
-MainFrame.Position = UDim2.new(0, 20, 0.5, -200)
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20) -- Đen đậm
+MainFrame.Size = UDim2.new(0, 250, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -175)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false
 MainFrame.Parent = ScreenGui
 
--- Thêm góc bo tròn
+-- Góc bo tròn
 local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = MainFrame
 
--- Thêm viền
-local UIStroke = Instance.new("UIStroke")
-UIStroke.Color = Color3.fromRGB(50, 50, 50)
-UIStroke.Thickness = 2
-UIStroke.Parent = MainFrame
+-- Tiêu đề (Anime Style)
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 50)
+Title.BackgroundTransparency = 1
+Title.Text = "KiraDaHub Beta 😱"
+Title.TextColor3 = Color3.fromRGB(255, 105, 180) -- Màu hồng anime
+Title.TextScaled = true
+Title.Font = Enum.Font.Anime
+Title.Parent = MainFrame
 
--- Thêm hiệu ứng bóng
-local Shadow = Instance.new("ImageLabel")
-Shadow.Size = UDim2.new(1, 20, 1, 20)
-Shadow.Position = UDim2.new(0, -10, 0, -10)
-Shadow.BackgroundTransparency = 1
-Shadow.Image = "rbxassetid://1316045217" -- Hiệu ứng bóng Roblox
-Shadow.ImageTransparency = 0.8
-Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-Shadow.ScaleType = Enum.ScaleType.Slice
-Shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-Shadow.Parent = MainFrame
-Shadow.ZIndex = -1
+-- Biến trạng thái
+local isMenuOpen = false
+local isSpeedEnabled = false
+local isJumpEnabled = false
+local isFlyEnabled = false
 
--- UIListLayout cho các nút dọc
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.FillDirection = Enum.FillDirection.Vertical
-UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-UIListLayout.Padding = UDim.new(0, 10)
-UIListLayout.Parent = MainFrame
-
--- Hàm tạo nút
-local function TaoNut(ten, callback)
-    local Nut = Instance.new("TextButton")
-    Nut.Size = UDim2.new(0, 130, 0, 40)
-    Nut.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    Nut.Text = ten
-    Nut.TextColor3 = Color3.fromRGB(255, 255, 255) -- Trắng
-    Nut.TextSize = 14
-    Nut.Parent = MainFrame
-    local NutCorner = Instance.new("UICorner")
-    NutCorner.CornerRadius = UDim.new(0, 6)
-    NutCorner.Parent = Nut
-    local NutStroke = Instance.new("UIStroke")
-    NutStroke.Color = Color3.fromRGB(60, 60, 60)
-    NutStroke.Thickness = 1
-    NutStroke.Parent = Nut
-    Nut.MouseButton1Click:Connect(callback)
-    return Nut
+-- Hàm tạo ô nhập liệu nhỏ gọn
+local function CreateInputBox(name, placeholder, positionY)
+    local InputBox = Instance.new("TextBox")
+    InputBox.Size = UDim2.new(0.8, 0, 0, 30)
+    InputBox.Position = UDim2.new(0.1, 0, 0, positionY)
+    InputBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    InputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    InputBox.PlaceholderText = placeholder
+    InputBox.Text = ""
+    InputBox.TextScaled = true
+    InputBox.Font = Enum.Font.Anime
+    InputBox.Parent = MainFrame
+    local UICornerInput = Instance.new("UICorner")
+    UICornerInput.CornerRadius = UDim.new(0, 5)
+    UICornerInput.Parent = InputBox
+    return InputBox
 end
 
--- Kéo thả menu
-local dragging = false
-local dragStart = nil
-local startPos = nil
+-- Hàm tạo nút bật/tắt nhỏ gọn
+local function CreateToggleButton(name, positionY, callback)
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Size = UDim2.new(0.8, 0, 0, 30)
+    ToggleButton.Position = UDim2.new(0.1, 0, 0, positionY)
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleButton.Text = name .. ": OFF"
+    ToggleButton.TextScaled = true
+    ToggleButton.Font = Enum.Font.Anime
+    ToggleButton.Parent = MainFrame
+    local UICornerButton = Instance.new("UICorner")
+    UICornerButton.CornerRadius = UDim.new(0, 5)
+    UICornerButton.Parent = ToggleButton
 
-UserInputService.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        if MainFrame.Visible and MainFrame:IsAncestorOf(game:GetService("GuiService"):GetFocusedTextBox()) == false then
-            local pos = input.Position
-            local framePos = MainFrame.AbsolutePosition
-            local frameSize = MainFrame.AbsoluteSize
-            if pos.X >= framePos.X and pos.X <= framePos.X + frameSize.X and pos.Y >= framePos.Y and pos.Y <= framePos.Y + frameSize.Y then
-                dragging = true
-                dragStart = pos
-                startPos = MainFrame.Position
-            end
+    local isToggled = false
+    ToggleButton.MouseButton1Click:Connect(function()
+        isToggled = not isToggled
+        ToggleButton.Text = name .. (isToggled and ": ON" or ": OFF")
+        ToggleButton.BackgroundColor3 = isToggled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(50, 50, 50)
+        callback(isToggled)
+    end)
+    return ToggleButton
+end
+
+-- Ô nhập ID người chơi
+local PlayerIDInput = CreateInputBox("PlayerID", "Nhập ID hoặc tên", 60)
+
+-- Nút dịch chuyển
+local TeleportButton = Instance.new("TextButton")
+TeleportButton.Size = UDim2.new(0.8, 0, 0, 30)
+TeleportButton.Position = UDim2.new(0.1, 0, 0, 100)
+TeleportButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+TeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+TeleportButton.Text = "Dịch Chuyển"
+TeleportButton.TextScaled = true
+TeleportButton.Font = Enum.Font.Anime
+TeleportButton.Parent = MainFrame
+local UICornerTeleport = Instance.new("UICorner")
+UICornerTeleport.CornerRadius = UDim.new(0, 5)
+UICornerTeleport.Parent = TeleportButton
+
+-- Hàm tìm người chơi theo ID hoặc tên
+local function FindPlayer(input)
+    local lowerInput = input:lower()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.UserId == tonumber(input) or player.Name:lower():find(lowerInput) then
+            return player
         end
     end
-end)
+    return nil
+end
 
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+-- Xử lý dịch chuyển
+TeleportButton.MouseButton1Click:Connect(function()
+    local targetPlayer = FindPlayer(PlayerIDInput.Text)
+    if targetPlayer and targetPlayer.Character and LocalPlayer.Character then
+        LocalPlayer.Character:MoveTo(targetPlayer.Character.HumanoidRootPart.Position)
     end
 end)
 
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
+-- Hiển thị khoảng cách cầu vồng
+local DistanceLabel = Instance.new("TextLabel")
+DistanceLabel.Size = UDim2.new(0.8, 0, 0, 30)
+DistanceLabel.Position = UDim2.new(0.1, 0, 0, 140)
+DistanceLabel.BackgroundTransparency = 1
+DistanceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+DistanceLabel.Text = "Khoảng cách: 0m"
+DistanceLabel.TextScaled = true
+DistanceLabel.Font = Enum.Font.Anime
+DistanceLabel.Parent = MainFrame
+
+-- Cập nhật khoảng cách
+game:GetService("RunService").RenderStepped:Connect(function()
+    local targetPlayer = FindPlayer(PlayerIDInput.Text)
+    if targetPlayer and targetPlayer.Character and LocalPlayer.Character then
+        local distance = (LocalPlayer.Character.HumanoidRootPart.Position - targetPlayer.Character.HumanoidRootPart.Position).Magnitude
+        DistanceLabel.Text = string.format("Khoảng cách: %.2fm", distance / 3) -- Quy đổi sang mét
+        DistanceLabel.TextColor3 = Color3.fromRGB(
+            math.sin(tick()) * 127 + 128,
+            math.sin(tick() + 2) * 127 + 128,
+            math.sin(tick() + 4) * 127 + 128
+        ) -- Hiệu ứng cầu vồng
+    else
+        DistanceLabel.Text = "Khoảng cách: N/A"
     end
 end)
 
--- Khung Tốc độ
-local KhungTocDo = Instance.new("Frame")
-KhungTocDo.Size = UDim2.new(0, 150, 0, 80)
-KhungTocDo.Position = UDim2.new(0.5, -75, 0.5, -40)
-KhungTocDo.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-KhungTocDo.BorderSizePixel = 0
-KhungTocDo.Visible = false
-KhungTocDo.Parent = ScreenGui
-local TocDoCorner = Instance.new("UICorner")
-TocDoCorner.CornerRadius = UDim.new(0, 8)
-TocDoCorner.Parent = KhungTocDo
-local TocDoStroke = Instance.new("UIStroke")
-TocDoStroke.Color = Color3.fromRGB(50, 50, 50)
-TocDoStroke.Thickness = 2
-TocDoStroke.Parent = KhungTocDo
-
-local NhacTocDo = Instance.new("TextLabel")
-NhacTocDo.Size = UDim2.new(1, 0, 0, 20)
-NhacTocDo.Text = "Tốc độ tùy chỉnh"
-NhacTocDo.TextColor3 = Color3.fromRGB(255, 255, 255)
-NhacTocDo.BackgroundTransparency = 1
-NhacTocDo.TextSize = 12
-NhacTocDo.Parent = KhungTocDo
-
-local ONhapTocDo = Instance.new("TextBox")
-ONhapTocDo.Size = UDim2.new(1, 0, 0, 20)
-ONhapTocDo.Position = UDim2.new(0, 0, 0, 20)
-ONhapTocDo.Text = "16" -- Tốc độ mặc định
-ONhapTocDo.TextColor3 = Color3.fromRGB(255, 255, 255)
-ONhapTocDo.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ONhapTocDo.TextSize = 12
-ONhapTocDo.Parent = KhungTocDo
-
-local NutApDungTocDo = Instance.new("TextButton")
-NutApDungTocDo.Size = UDim2.new(1, 0, 0, 20)
-NutApDungTocDo.Position = UDim2.new(0, 0, 0, 40)
-NutApDungTocDo.Text = "Áp dụng"
-NutApDungTocDo.TextColor3 = Color3.fromRGB(255, 255, 255)
-NutApDungTocDo.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-NutApDungTocDo.TextSize = 12
-NutApDungTocDo.Parent = KhungTocDo
-NutApDungTocDo.MouseButton1Click:Connect(function()
-    local tocdo = tonumber(ONhapTocDo.Text)
-    if tocdo and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = tocdo -- Không giới hạn
+-- Tốc độ không giới hạn
+local SpeedToggle = CreateToggleButton("Tốc Độ", 180, function(state)
+    isSpeedEnabled = state
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = state and 100 or 16
     end
-    KhungTocDo.Visible = false
 end)
 
--- Khung Nhảy cao
-local KhungNhayCao = Instance.new("Frame")
-KhungNhayCao.Size = UDim2.new(0, 150, 0, 80)
-KhungNhayCao.Position = UDim2.new(0.5, -75, 0.5, -40)
-KhungNhayCao.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-KhungNhayCao.BorderSizePixel = 0
-KhungNhayCao.Visible = false
-KhungNhayCao.Parent = ScreenGui
-local NhayCaoCorner = Instance.new("UICorner")
-NhayCaoCorner.CornerRadius = UDim.new(0, 8)
-NhayCaoCorner.Parent = KhungNhayCao
-local NhayCaoStroke = Instance.new("UIStroke")
-NhayCaoStroke.Color = Color3.fromRGB(50, 50, 50)
-NhayCaoStroke.Thickness = 2
-NhayCaoStroke.Parent = KhungNhayCao
-
-local NhacNhayCao = Instance.new("TextLabel")
-NhacNhayCao.Size = UDim2.new(1, 0, 0, 20)
-NhacNhayCao.Text = "Độ cao nhảy"
-NhacNhayCao.TextColor3 = Color3.fromRGB(255, 255, 255)
-NhacNhayCao.BackgroundTransparency = 1
-NhacNhayCao.TextSize = 12
-NhacNhayCao.Parent = KhungNhayCao
-
-local ONhapNhayCao = Instance.new("TextBox")
-ONhapNhayCao.Size = UDim2.new(1, 0, 0, 20)
-ONhapNhayCao.Position = UDim2.new(0, 0, 0, 20)
-ONhapNhayCao.Text = "50" -- Độ cao nhảy mặc định
-ONhapNhayCao.TextColor3 = Color3.fromRGB(255, 255, 255)
-ONhapNhayCao.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ONhapNhayCao.TextSize = 12
-ONhapNhayCao.Parent = KhungNhayCao
-
-local NutApDungNhayCao = Instance.new("TextButton")
-NutApDungNhayCao.Size = UDim2.new(1, 0, 0, 20)
-NutApDungNhayCao.Position = UDim2.new(0, 0, 0, 40)
-NutApDungNhayCao.Text = "Áp dụng"
-NutApDungNhayCao.TextColor3 = Color3.fromRGB(255, 255, 255)
-NutApDungNhayCao.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-NutApDungNhayCao.TextSize = 12
-NutApDungNhayCao.Parent = KhungNhayCao
-NutApDungNhayCao.MouseButton1Click:Connect(function()
-    local doCaoNhay = tonumber(ONhapNhayCao.Text)
-    if doCaoNhay and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.JumpPower = doCaoNhay -- Không giới hạn
-        LocalPlayer.Character.Humanoid.JumpHeight = doCaoNhay / 2
+-- Nhảy không giới hạn
+local JumpToggle = CreateToggleButton("Nhảy", 220, function(state)
+    isJumpEnabled = state
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.JumpPower = state and 100 or 50
     end
-    KhungNhayCao.Visible = false
 end)
 
--- Khung Bay
-local KhungBay = Instance.new("Frame")
-KhungBay.Size = UDim2.new(0, 150, 0, 80)
-KhungBay.Position = UDim2.new(0.5, -75, 0.5, -40)
-KhungBay.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-KhungBay.BorderSizePixel = 0
-KhungBay.Visible = false
-KhungBay.Parent = ScreenGui
-local BayCorner = Instance.new("UICorner")
-BayCorner.CornerRadius = UDim.new(0, 8)
-BayCorner.Parent = KhungBay
-local BayStroke = Instance.new("UIStroke")
-BayStroke.Color = Color3.fromRGB(50, 50, 50)
-BayStroke.Thickness = 2
-BayStroke.Parent = KhungBay
-
-local NhacBay = Instance.new("TextLabel")
-NhacBay.Size = UDim2.new(1, 0, 0, 20)
-NhacBay.Text = "Tốc độ bay"
-NhacBay.TextColor3 = Color3.fromRGB(255, 255, 255)
-NhacBay.BackgroundTransparency = 1
-NhacBay.TextSize = 12
-NhacBay.Parent = KhungBay
-
-local ONhapBay = Instance.new("TextBox")
-ONhapBay.Size = UDim2.new(1, 0, 0, 20)
-ONhapBay.Position = UDim2.new(0, 0, 0, 20)
-ONhapBay.Text = "50" -- Tốc độ bay mặc định
-ONhapBay.TextColor3 = Color3.fromRGB(255, 255, 255)
-ONhapBay.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ONhapBay.TextSize = 12
-ONhapBay.Parent = KhungBay
-
-local NutBatTatBay = Instance.new("TextButton")
-NutBatTatBay.Size = UDim2.new(1, 0, 0, 20)
-NutBatTatBay.Position = UDim2.new(0, 0, 0, 40)
-NutBatTatBay.Text = "Bật/Tắt Bay"
-NutBatTatBay.TextColor3 = Color3.fromRGB(255, 255, 255)
-NutBatTatBay.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-NutBatTatBay.TextSize = 12
-NutBatTatBay.Parent = KhungBay
-
--- Logic Bay
-local dangBay = false
-local tocDoBay = 50
-local bodyVelocity = nil
-local bodyGyro = nil
-
-local function BatTatBay()
-    dangBay = not dangBay
-    local nhanVat = LocalPlayer.Character
-    local humanoidRootPart = nhanVat and nhanVat:FindFirstChild("HumanoidRootPart")
-    
-    if dangBay and humanoidRootPart then
-        bodyVelocity = Instance.new("BodyVelocity")
+-- Bay không giới hạn
+local FlyToggle = CreateToggleButton("Bay", 260, function(state)
+    isFlyEnabled = state
+    if state then
+        local bodyVelocity = Instance.new("BodyVelocity")
         bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
         bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        bodyVelocity.Parent = humanoidRootPart
-        
-        bodyGyro = Instance.new("BodyGyro")
-        bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bodyGyro.CFrame = humanoidRootPart.CFrame
-        bodyGyro.Parent = humanoidRootPart
-        
-        spawn(function()
-            while dangBay and humanoidRootPart and humanoidRootPart.Parent do
-                local camera = workspace.CurrentCamera
-                local huongDiChuyen = Vector3.new(0, 0, 0)
-                
-                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                    huongDiChuyen = huongDiChuyen + camera.CFrame.LookVector
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                    huongDiChuyen = huongDiChuyen - camera.CFrame.LookVector
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                    huongDiChuyen = huongDiChuyen - camera.CFrame.RightVector
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                    huongDiChuyen = huongDiChuyen + camera.CFrame.RightVector
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                    huongDiChuyen = huongDiChuyen + Vector3.new(0, 1, 0)
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-                    huongDiChuyen = huongDiChuyen - Vector3.new(0, 1, 0)
-                end
-                
-                bodyVelocity.Velocity = huongDiChuyen * tocDoBay
-                bodyGyro.CFrame = camera.CFrame
-                RunService.RenderStepped:Wait()
+        bodyVelocity.Parent = LocalPlayer.Character.HumanoidRootPart
+        bodyVelocity.Name = "FlyVelocity"
+
+        UserInputService.InputBegan:Connect(function(input)
+            if isFlyEnabled and input.KeyCode == Enum.KeyCode.Space then
+                bodyVelocity.Velocity = Vector3.new(0, 50, 0)
             end
-            if bodyVelocity then bodyVelocity:Destroy() end
-            if bodyGyro then bodyGyro:Destroy() end
+        end)
+        UserInputService.InputEnded:Connect(function(input)
+            if isFlyEnabled and input.KeyCode == Enum.KeyCode.Space then
+                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            end
         end)
     else
-        if bodyVelocity then bodyVelocity:Destroy() end
-        if bodyGyro then bodyGyro:Destroy() end
-    end
-end
-
-NutBatTatBay.MouseButton1Click:Connect(function()
-    tocDoBay = tonumber(ONhapBay.Text) or 50
-    BatTatBay()
-    KhungBay.Visible = false
-end)
-
--- Tàng hình
-local dangTangHinh = false
-local function BatTatTangHinh()
-    dangTangHinh = not dangTangHinh
-    if LocalPlayer.Character then
-        for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
-            if part:IsA("BasePart") or part:IsA("Decal") then
-                part.Transparency = dangTangHinh and 1 or 0
-            end
+        if LocalPlayer.Character and LocalPlayer.Character.HumanoidRootPart:FindFirstChild("FlyVelocity") then
+            LocalPlayer.Character.HumanoidRootPart.FlyVelocity:Destroy()
         end
     end
-end
+end)
 
--- Khung Dịch chuyển
-local KhungDichChuyen = Instance.new("Frame")
-KhungDichChuyen.Size = UDim2.new(0, 150, 0, 80)
-KhungDichChuyen.Position = UDim2.new(0.5, -75, 0.5, -40)
-KhungDichChuyen.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-KhungDichChuyen.BorderSizePixel = 0
-KhungDichChuyen.Visible = false
-KhungDichChuyen.Parent = ScreenGui
-local DichChuyenCorner = Instance.new("UICorner")
-DichChuyenCorner.CornerRadius = UDim.new(0, 8)
-DichChuyenCorner.Parent = KhungDichChuyen
-local DichChuyenStroke = Instance.new("UIStroke")
-DichChuyenStroke.Color = Color3.fromRGB(50, 50, 50)
-DichChuyenStroke.Thickness = 2
-DichChuyenStroke.Parent = KhungDichChuyen
-
-local NhacDichChuyen = Instance.new("TextLabel")
-NhacDichChuyen.Size = UDim2.new(1, 0, 0, 20)
-NhacDichChuyen.Text = "UserId người chơi"
-NhacDichChuyen.TextColor3 = Color3.fromRGB(255, 255, 255)
-NhacDichChuyen.BackgroundTransparency = 1
-NhacDichChuyen.TextSize = 12
-NhacDichChuyen.Parent = KhungDichChuyen
-
-local ONhapDichChuyen = Instance.new("TextBox")
-ONhapDichChuyen.Size = UDim2.new(1, 0, 0, 20)
-ONhapDichChuyen.Position = UDim2.new(0, 0, 0, 20)
-ONhapDichChuyen.Text = ""
-ONhapDichChuyen.TextColor3 = Color3.fromRGB(255, 255, 255)
-ONhapDichChuyen.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ONhapDichChuyen.TextSize = 12
-ONhapDichChuyen.Parent = KhungDichChuyen
-
-local NutDichChuyen = Instance.new("TextButton")
-NutDichChuyen.Size = UDim2.new(1, 0, 0, 20)
-NutDichChuyen.Position = UDim2.new(0, 0, 0, 40)
-NutDichChuyen.Text = "Dịch chuyển"
-NutDichChuyen.TextColor3 = Color3.fromRGB(255, 255, 255)
-NutDichChuyen.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-NutDichChuyen.TextSize = 12
-NutDichChuyen.Parent = KhungDichChuyen
-NutDichChuyen.MouseButton1Click:Connect(function()
-    local userId = tonumber(ONhapDichChuyen.Text)
-    if userId then
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player.UserId == userId then
-                if LocalPlayer.Character and player.Character then
-                    LocalPlayer.Character:MoveTo(player.Character.PrimaryPart.Position)
-                end
-                break
-            end
-        end
+-- Bật/tắt menu
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Insert then -- Phím Insert để bật/tắt
+        isMenuOpen = not isMenuOpen
+        MainFrame.Visible = isMenuOpen
+        Title.Text = isMenuOpen and "KiraDaHub Beta 😱" or "KiraDaHub Beta 😭"
     end
-    KhungDichChuyen.Visible = false
 end)
 
--- Chuyển server
-local function ChuyenServer()
-    local placeId = game.PlaceId
-    local servers = {}
-    local cursor = ""
-    repeat
-        local url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"
-        if cursor ~= "" then url = url .. "&cursor=" .. cursor end
-        local response = HttpService:JSONDecode(HttpService:GetAsync(url))
-        servers = response.data
-        cursor = response.nextPageCursor
-    until not cursor
-
-    if #servers > 0 then
-        table.sort(servers, function(a, b) return a.playing < b.playing end)
-        local lowPopServer = servers[1]
-        if lowPopServer.playing < game.Players.NumPlayers then
-            TeleportService:TeleportToPlaceInstance(placeId, lowPopServer.id)
-        end
-    end
-end
-
--- Noclip
-local dangNoclip = false
-local noclipConnection = nil
-
-local function BatTatNoclip()
-    dangNoclip = not dangNoclip
-    local nhanVat = LocalPlayer.Character
-    if nhanVat then
-        if dangNoclip then
-            -- Tạo nhóm va chạm riêng
-            PhysicsService:CreateCollisionGroup("Noclip")
-            PhysicsService:CollisionGroupSetCollidable("Noclip", "Default", false)
-            
-            for _, part in ipairs(nhanVat:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                    PhysicsService:SetPartCollisionGroup(part, "Noclip")
-                end
-            end
-            
-            -- Theo dõi khi nhân vật thêm bộ phận mới
-            noclipConnection = nhanVat.DescendantAdded:Connect(function(descendant)
-                if dangNoclip and descendant:IsA("BasePart") then
-                    descendant.CanCollide = false
-                    PhysicsService:SetPartCollisionGroup(descendant, "Noclip")
-                end
-            end)
-        else
-            -- Khôi phục va chạm
-            for _, part in ipairs(nhanVat:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
-                    PhysicsService:SetPartCollisionGroup(part, "Default")
-                end
-            end
-            if noclipConnection then
-                noclipConnection:Disconnect()
-                noclipConnection = nil
-            end
-        end
-    end
-end
-
--- Các nút trong menu
-TaoNut("Tốc độ", function()
-    KhungTocDo.Visible = true
-end)
-
-TaoNut("Nhảy cao", function()
-    KhungNhayCao.Visible = true
-end)
-
-TaoNut("Bay", function()
-    KhungBay.Visible = true
-end)
-
-TaoNut("Tàng hình", BatTatTangHinh)
-
-TaoNut("Dịch chuyển", function()
-    KhungDichChuyen.Visible = true
-end)
-
-TaoNut("Chuyển server", ChuyenServer)
-
-TaoNut("Noclip", BatTatNoclip)
-
-TaoNut("Bật/Tắt Menu", function()
-    MainFrame.Visible = not MainFrame.Visible
-end)
+-- Thông báo tải script
+print("KiraDaHub Beta đã được tải! Nhấn Insert để mở/tắt menu.")
