@@ -1,5 +1,5 @@
--- Kirada Beta (Demo) - Roblox Client Hack Script
--- Features: Infinite Run (with speed input), Jump Hack, Noclip Toggle, Rainbow ESP with Distance
+-- Kirada Hub Beta (Demo) - Roblox Client Hack Script
+-- Features: Infinite Run (with speed input), Jump Hack (with height input), Noclip Toggle, Rainbow ESP with Distance, Vietnamese Translation Toggle
 -- Notification: One-time error message on load
 -- GUI: Modern UI with blur and gradients
 -- Author: Grok (demo version) - Use at your own risk!
@@ -20,10 +20,54 @@ local infiniteRunEnabled = false
 local jumpEnabled = false
 local noclipEnabled = false
 local espEnabled = false
+local vietnameseEnabled = false
 local runSpeed = 16 -- Default speed
+local jumpPower = 50 -- Default jump power
 local noclipConnection
 local runConnection
 local espConnections = {}
+
+-- Language Dictionaries
+local lang = {
+    en = {
+        title = "Kirada Hub Beta (Demo)",
+        speedLabel = "Run Speed:",
+        speedPlaceholder = "Enter speed (e.g., 50)",
+        runButton = "Infinite Run: OFF",
+        runButtonOn = "Infinite Run: ON",
+        jumpButton = "High Jump: OFF",
+        jumpButtonOn = "High Jump: ON",
+        jumpLabel = "Jump Power:",
+        jumpPlaceholder = "Enter jump power (e.g., 100)",
+        noclipButton = "Noclip: OFF",
+        noclipButtonOn = "Noclip: ON",
+        espButton = "Rainbow ESP: OFF",
+        espButtonOn = "Rainbow ESP: ON",
+        translateButton = "Vietnamese: OFF",
+        translateButtonOn = "Vietnamese: ON",
+        closeButton = "X",
+        notification = "Error may occur, please bear with us 🥺"
+    },
+    vi = {
+        title = "Kirada Hub Beta (Thử Nghiệm)",
+        speedLabel = "Tốc Độ Chạy:",
+        speedPlaceholder = "Nhập tốc độ (ví dụ: 50)",
+        runButton = "Chạy Không Giới Hạn: TẮT",
+        runButtonOn = "Chạy Không Giới Hạn: BẬT",
+        jumpButton = "Nhảy Cao: TẮT",
+        jumpButtonOn = "Nhảy Cao: BẬT",
+        jumpLabel = "Độ Cao Nhảy:",
+        jumpPlaceholder = "Nhập độ cao nhảy (ví dụ: 100)",
+        noclipButton = "Xuyên Tường: TẮT",
+        noclipButtonOn = "Xuyên Tường: BẬT",
+        espButton = "ESP Cầu Vồng: TẮT",
+        espButtonOn = "ESP Cầu Vồng: BẬT",
+        translateButton = "Tiếng Việt: TẮT",
+        translateButtonOn = "Tiếng Việt: BẬT",
+        closeButton = "X",
+        notification = "Lỗi lâu lâu xin thông cảm 🥺"
+    }
+}
 
 -- One-time Notification
 local function showNotification(text)
@@ -64,7 +108,7 @@ local function showNotification(text)
 end
 
 -- Show notification once on load
-showNotification("Lỗi lâu lâu xin thông cảm 🥺")
+showNotification(lang.en.notification)
 
 -- Rainbow Color Function
 local function getRainbowColor()
@@ -170,19 +214,34 @@ end
 -- Jump Hack
 local function toggleJump()
     jumpEnabled = not jumpEnabled
-    humanoid.JumpPower = jumpEnabled and 100 or 50
+    humanoid.JumpPower = jumpEnabled and jumpPower or 50
+end
+
+-- Update UI Language
+local function updateLanguage()
+    local currentLang = vietnameseEnabled and lang.vi or lang.en
+    title.Text = currentLang.title
+    speedLabel.Text = currentLang.speedLabel
+    speedInput.PlaceholderText = currentLang.speedPlaceholder
+    runButton.Text = infiniteRunEnabled and currentLang.runButtonOn or currentLang.runButton
+    jumpLabel.Text = currentLang.jumpLabel
+    jumpInput.PlaceholderText = currentLang.jumpPlaceholder
+    jumpButton.Text = jumpEnabled and currentLang.jumpButtonOn or currentLang.jumpButton
+    noclipButton.Text = noclipEnabled and currentLang.noclipButtonOn or currentLang.noclipButton
+    espButton.Text = espEnabled and currentLang.espButtonOn or currentLang.espButton
+    translateButton.Text = vietnameseEnabled and currentLang.translateButtonOn or currentLang.translateButton
 end
 
 -- Create GUI
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "KiradaBeta"
+screenGui.Name = "KiradaHubBeta"
 screenGui.Parent = player:WaitForChild("PlayerGui")
 screenGui.ResetOnSpawn = false
 
 -- Main Frame
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 350, 0, 450)
-mainFrame.Position = UDim2.new(0.5, -175, 0.5, -225)
+mainFrame.Size = UDim2.new(0, 350, 0, 550) -- Increased height to accommodate new input
+mainFrame.Position = UDim2.new(0.5, -175, 0.5, -275)
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = screenGui
@@ -200,7 +259,7 @@ blur.Parent = Lighting
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 50)
 title.BackgroundTransparency = 1
-title.Text = "Kirada Beta (Demo)"
+title.Text = lang.en.title
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextScaled = true
 title.Font = Enum.Font.GothamBold
@@ -211,7 +270,7 @@ local speedLabel = Instance.new("TextLabel")
 speedLabel.Size = UDim2.new(1, 0, 0, 30)
 speedLabel.Position = UDim2.new(0, 0, 0, 60)
 speedLabel.BackgroundTransparency = 1
-speedLabel.Text = "Tốc độ chạy:"
+speedLabel.Text = lang.en.speedLabel
 speedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 speedLabel.TextScaled = true
 speedLabel.Font = Enum.Font.Gotham
@@ -222,12 +281,13 @@ speedInput.Size = UDim2.new(1, -20, 0, 30)
 speedInput.Position = UDim2.new(0, 10, 0, 90)
 speedInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
 speedInput.BorderSizePixel = 0
-speedInput.Text = "16"
+speedInput.Text = tostring(runSpeed)
 speedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedInput.PlaceholderText = "Nhập tốc độ (ví dụ: 50)"
+speedInput.PlaceholderText = lang.en.speedPlaceholder
 speedInput.TextScaled = true
 speedInput.Font = Enum.Font.Gotham
 speedInput.Parent = mainFrame
+speedInput.Visible = false -- Initially hidden
 
 local speedCorner = Instance.new("UICorner")
 speedCorner.CornerRadius = UDim.new(0, 5)
@@ -242,13 +302,54 @@ speedInput.FocusLost:Connect(function()
     end
 end)
 
+-- Jump Power Input
+local jumpLabel = Instance.new("TextLabel")
+jumpLabel.Size = UDim2.new(1, 0, 0, 30)
+jumpLabel.Position = UDim2.new(0, 0, 0, 130)
+jumpLabel.BackgroundTransparency = 1
+jumpLabel.Text = lang.en.jumpLabel
+jumpLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+jumpLabel.TextScaled = true
+jumpLabel.Font = Enum.Font.Gotham
+jumpLabel.Parent = mainFrame
+jumpLabel.Visible = false -- Initially hidden
+
+local jumpInput = Instance.new("TextBox")
+jumpInput.Size = UDim2.new(1, -20, 0, 30)
+jumpInput.Position = UDim2.new(0, 10, 0, 160)
+jumpInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+jumpInput.BorderSizePixel = 0
+jumpInput.Text = tostring(jumpPower)
+jumpInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+jumpInput.PlaceholderText = lang.en.jumpPlaceholder
+jumpInput.TextScaled = true
+jumpInput.Font = Enum.Font.Gotham
+jumpInput.Parent = mainFrame
+jumpInput.Visible = false -- Initially hidden
+
+local jumpCorner = Instance.new("UICorner")
+jumpCorner.CornerRadius = UDim.new(0, 5)
+jumpCorner.Parent = jumpInput
+
+jumpInput.FocusLost:Connect(function()
+    local num = tonumber(jumpInput.Text)
+    if num and num > 0 then
+        jumpPower = num
+        if jumpEnabled then
+            humanoid.JumpPower = jumpPower
+        end
+    else
+        jumpInput.Text = tostring(jumpPower)
+    end
+end)
+
 -- Run Button
 local runButton = Instance.new("TextButton")
 runButton.Size = UDim2.new(0.8, 0, 0, 40)
-runButton.Position = UDim2.new(0.1, 0, 0, 130)
+runButton.Position = UDim2.new(0.1, 0, 0, 200)
 runButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
 runButton.BorderSizePixel = 0
-runButton.Text = "Chạy Không Giới Hạn: OFF"
+runButton.Text = lang.en.runButton
 runButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 runButton.TextScaled = true
 runButton.Font = Enum.Font.GothamBold
@@ -260,17 +361,19 @@ runCorner.Parent = runButton
 
 runButton.MouseButton1Click:Connect(function()
     toggleInfiniteRun()
-    runButton.Text = infiniteRunEnabled and "Chạy Không Giới Hạn: ON" or "Chạy Không Giới Hạn: OFF"
+    runButton.Text = infiniteRunEnabled and lang[vietnameseEnabled and "vi" or "en"].runButtonOn or lang[vietnameseEnabled and "vi" or "en"].runButton
     runButton.BackgroundColor3 = infiniteRunEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
+    speedInput.Visible = infiniteRunEnabled
+    speedLabel.Visible = infiniteRunEnabled
 end)
 
 -- Jump Button
 local jumpButton = Instance.new("TextButton")
 jumpButton.Size = UDim2.new(0.8, 0, 0, 40)
-jumpButton.Position = UDim2.new(0.1, 0, 0, 180)
+jumpButton.Position = UDim2.new(0.1, 0, 0, 250)
 jumpButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
 jumpButton.BorderSizePixel = 0
-jumpButton.Text = "Nhảy Cao: OFF"
+jumpButton.Text = lang.en.jumpButton
 jumpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 jumpButton.TextScaled = true
 jumpButton.Font = Enum.Font.GothamBold
@@ -282,17 +385,19 @@ jumpCorner.Parent = jumpButton
 
 jumpButton.MouseButton1Click:Connect(function()
     toggleJump()
-    jumpButton.Text = jumpEnabled and "Nhảy Cao: ON" or "Nhảy Cao: OFF"
+    jumpButton.Text = jumpEnabled and lang[vietnameseEnabled and "vi" or "en"].jumpButtonOn or lang[vietnameseEnabled and "vi" or "en"].jumpButton
     jumpButton.BackgroundColor3 = jumpEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
+    jumpInput.Visible = jumpEnabled
+    jumpLabel.Visible = jumpEnabled
 end)
 
 -- Noclip Button
 local noclipButton = Instance.new("TextButton")
 noclipButton.Size = UDim2.new(0.8, 0, 0, 40)
-noclipButton.Position = UDim2.new(0.1, 0, 0, 230)
+noclipButton.Position = UDim2.new(0.1, 0, 0, 300)
 noclipButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
 noclipButton.BorderSizePixel = 0
-noclipButton.Text = "Xuyên Tường: OFF"
+noclipButton.Text = lang.en.noclipButton
 noclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 noclipButton.TextScaled = true
 noclipButton.Font = Enum.Font.GothamBold
@@ -304,17 +409,17 @@ noclipCorner.Parent = noclipButton
 
 noclipButton.MouseButton1Click:Connect(function()
     toggleNoclip()
-    noclipButton.Text = noclipEnabled and "Xuyên Tường: ON" or "Xuyên Tường: OFF"
+    noclipButton.Text = noclipEnabled and lang[vietnameseEnabled and "vi" or "en"].noclipButtonOn or lang[vietnameseEnabled and "vi" or "en"].noclipButton
     noclipButton.BackgroundColor3 = noclipEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
 end)
 
 -- ESP Button
 local espButton = Instance.new("TextButton")
 espButton.Size = UDim2.new(0.8, 0, 0, 40)
-espButton.Position = UDim2.new(0.1, 0, 0, 280)
+espButton.Position = UDim2.new(0.1, 0, 0, 350)
 espButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
 espButton.BorderSizePixel = 0
-espButton.Text = "ESP Cầu Vồng: OFF"
+espButton.Text = lang.en.espButton
 espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 espButton.TextScaled = true
 espButton.Font = Enum.Font.GothamBold
@@ -326,8 +431,30 @@ espCorner.Parent = espButton
 
 espButton.MouseButton1Click:Connect(function()
     toggleESP()
-    espButton.Text = espEnabled and "ESP Cầu Vồng: ON" or "ESP Cầu Vồng: OFF"
+    espButton.Text = espEnabled and lang[vietnameseEnabled and "vi" or "en"].espButtonOn or lang[vietnameseEnabled and "vi" or "en"].espButton
     espButton.BackgroundColor3 = espEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
+end)
+
+-- Translate Button
+local translateButton = Instance.new("TextButton")
+translateButton.Size = UDim2.new(0.8, 0, 0, 40)
+translateButton.Position = UDim2.new(0.1, 0, 0, 400)
+translateButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
+translateButton.BorderSizePixel = 0
+translateButton.Text = lang.en.translateButton
+translateButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+translateButton.TextScaled = true
+translateButton.Font = Enum.Font.GothamBold
+translateButton.Parent = mainFrame
+
+local translateCorner = Instance.new("UICorner")
+translateCorner.CornerRadius = UDim.new(0, 8)
+translateCorner.Parent = translateButton
+
+translateButton.MouseButton1Click:Connect(function()
+    vietnameseEnabled = not vietnameseEnabled
+    updateLanguage()
+    translateButton.BackgroundColor3 = vietnameseEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
 end)
 
 -- Close Button
@@ -336,7 +463,7 @@ closeButton.Size = UDim2.new(0, 30, 0, 30)
 closeButton.Position = UDim2.new(1, -35, 0, 5)
 closeButton.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
 closeButton.BorderSizePixel = 0
-closeButton.Text = "X"
+closeButton.Text = lang.en.closeButton
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeButton.TextScaled = true
 closeButton.Font = Enum.Font.GothamBold
@@ -358,7 +485,7 @@ end)
 
 -- Animate GUI in
 mainFrame.Size = UDim2.new(0, 0, 0, 0)
-TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 350, 0, 450)}):Play()
+TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 350, 0, 550)}):Play()
 
 -- Handle character respawn
 player.CharacterAdded:Connect(function(newChar)
@@ -371,4 +498,4 @@ player.CharacterAdded:Connect(function(newChar)
     if espEnabled then toggleESP(); toggleESP() end -- Refresh ESP
 end)
 
-print("Kirada Beta loaded! Demo mode with ESP active. Use at your own risk 🥺")
+print("Kirada Hub Beta loaded! Demo mode with ESP active. Use at your own risk 🥺")
