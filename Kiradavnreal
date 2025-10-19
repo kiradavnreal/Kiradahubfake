@@ -1,501 +1,449 @@
--- Kirada Hub Beta (Demo) - Roblox Client Hack Script
--- Features: Infinite Run (with speed input), Jump Hack (with height input), Noclip Toggle, Rainbow ESP with Distance, Vietnamese Translation Toggle
--- Notification: One-time error message on load
--- GUI: Modern UI with blur and gradients
--- Author: Grok (demo version) - Use at your own risk!
+-- Kirada Hub Beta (Thử Nghiệm) - Script Hack Client Roblox
+-- Tính năng: Chạy vô hạn (với ô nhập tốc độ), Nhảy cao (với ô nhập độ cao), Xuyên tường, Chuyển đổi ngôn ngữ Tiếng Việt
+-- Thông báo: Hiển thị lỗi một lần khi tải
+-- Giao diện: Giao diện hiện đại với hiệu ứng mờ và gradient
+-- Tác giả: Grok (phiên bản thử nghiệm) - Sử dụng với rủi ro của riêng bạn!
 
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local Lighting = game:GetService("Lighting")
+local NguoiChoi = game:GetService("Players")
+local DichVuNhapLieu = game:GetService("UserInputService")
+local DichVuChay = game:GetService("RunService")
+local DichVuChuyểnĐộng = game:GetService("TweenService")
+local AnhSang = game:GetService("Lighting")
 
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local rootPart = character:WaitForChild("HumanoidRootPart")
+local nguoiChoi = NguoiChoi.LocalPlayer
+local nhanVat = nguoiChoi.Character or nguoiChoi.CharacterAdded:Wait()
+local nhanVatHumanoid = nhanVat:WaitForChild("Humanoid")
+local phanGoc = nhanVat:WaitForChild("HumanoidRootPart")
 
--- Variables
-local infiniteRunEnabled = false
-local jumpEnabled = false
-local noclipEnabled = false
-local espEnabled = false
-local vietnameseEnabled = false
-local runSpeed = 16 -- Default speed
-local jumpPower = 50 -- Default jump power
-local noclipConnection
-local runConnection
-local espConnections = {}
+-- Biến
+local chayVoHanKichHoat = false
+local nhayCaoKichHoat = false
+local xuyenTuongKichHoat = false
+local tiengVietKichHoat = false
+local tocDoChay = 16 -- Tốc độ mặc định
+local doCaoNhay = 50 -- Độ cao nhảy mặc định
+local ketNoiXuyenTuong
+local ketNoiChay
 
--- Language Dictionaries
-local lang = {
+-- Từ điển ngôn ngữ
+local ngonNgu = {
     en = {
-        title = "Kirada Hub Beta (Demo)",
-        speedLabel = "Run Speed:",
-        speedPlaceholder = "Enter speed (e.g., 50)",
-        runButton = "Infinite Run: OFF",
-        runButtonOn = "Infinite Run: ON",
-        jumpButton = "High Jump: OFF",
-        jumpButtonOn = "High Jump: ON",
-        jumpLabel = "Jump Power:",
-        jumpPlaceholder = "Enter jump power (e.g., 100)",
-        noclipButton = "Noclip: OFF",
-        noclipButtonOn = "Noclip: ON",
-        espButton = "Rainbow ESP: OFF",
-        espButtonOn = "Rainbow ESP: ON",
-        translateButton = "Vietnamese: OFF",
-        translateButtonOn = "Vietnamese: ON",
-        closeButton = "X",
-        notification = "Error may occur, please bear with us 🥺"
+        tieuDe = "Kirada Hub Beta (Demo)",
+        nhanTocDo = "Tốc Độ Chạy:",
+        goiYTocDo = "Nhập tốc độ (ví dụ: 50)",
+        nutChay = "Chạy Vô Hạn: TẮT",
+        nutChayBat = "Chạy Vô Hạn: BẬT",
+        nutNhay = "Nhảy Cao: TẮT",
+        nutNhayBat = "Nhảy Cao: BẬT",
+        nhanNhay = "Độ Cao Nhảy:",
+        goiYNhay = "Nhập độ cao nhảy (ví dụ: 100)",
+        nutXuyenTuong = "Xuyên Tường: TẮT",
+        nutXuyenTuongBat = "Xuyên Tường: BẬT",
+        nutChuyenNgonNgu = "Tiếng Việt: TẮT",
+        nutChuyenNgonNguBat = "Tiếng Việt: BẬT",
+        nutDong = "X",
+        thongBao = "Lỗi có thể xảy ra, xin thông cảm 🥺"
     },
     vi = {
-        title = "Kirada Hub Beta (Thử Nghiệm)",
-        speedLabel = "Tốc Độ Chạy:",
-        speedPlaceholder = "Nhập tốc độ (ví dụ: 50)",
-        runButton = "Chạy Không Giới Hạn: TẮT",
-        runButtonOn = "Chạy Không Giới Hạn: BẬT",
-        jumpButton = "Nhảy Cao: TẮT",
-        jumpButtonOn = "Nhảy Cao: BẬT",
-        jumpLabel = "Độ Cao Nhảy:",
-        jumpPlaceholder = "Nhập độ cao nhảy (ví dụ: 100)",
-        noclipButton = "Xuyên Tường: TẮT",
-        noclipButtonOn = "Xuyên Tường: BẬT",
-        espButton = "ESP Cầu Vồng: TẮT",
-        espButtonOn = "ESP Cầu Vồng: BẬT",
-        translateButton = "Tiếng Việt: TẮT",
-        translateButtonOn = "Tiếng Việt: BẬT",
-        closeButton = "X",
-        notification = "Lỗi lâu lâu xin thông cảm 🥺"
+        tieuDe = "Kirada Hub Beta (Thử Nghiệm)",
+        nhanTocDo = "Tốc Độ Chạy:",
+        goiYTocDo = "Nhập tốc độ (ví dụ: 50)",
+        nutChay = "Chạy Vô Hạn: TẮT",
+        nutChayBat = "Chạy Vô Hạn: BẬT",
+        nutNhay = "Nhảy Cao: TẮT",
+        nutNhayBat = "Nhảy Cao: BẬT",
+        nhanNhay = "Độ Cao Nhảy:",
+        goiYNhay = "Nhập độ cao nhảy (ví dụ: 100)",
+        nutXuyenTuong = "Xuyên Tường: TẮT",
+        nutXuyenTuongBat = "Xuyên Tường: BẬT",
+        nutChuyenNgonNgu = "Tiếng Việt: TẮT",
+        nutChuyenNgonNguBat = "Tiếng Việt: BẬT",
+        nutDong = "X",
+        thongBao = "Lỗi lâu lâu xin thông cảm 🥺"
     }
 }
 
--- One-time Notification
-local function showNotification(text)
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Parent = player:WaitForChild("PlayerGui")
-    screenGui.Name = "KiradaNotification"
-    screenGui.ResetOnSpawn = false
+-- Hàm hiển thị thông báo một lần
+local function hienThongBao(vanBan)
+    local giaoDienManHinh = Instance.new("ScreenGui")
+    giaoDienManHinh.Parent = nguoiChoi:WaitForChild("PlayerGui")
+    giaoDienManHinh.Name = "ThongBaoKirada"
+    giaoDienManHinh.ResetOnSpawn = false
 
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 60)
-    frame.Position = UDim2.new(0.5, -150, 0, 20)
-    frame.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-    frame.BorderSizePixel = 0
-    frame.Parent = screenGui
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
-    corner.Parent = frame
+    local khung = Instance.new("Frame")
+    khung.Size = UDim2.new(0, 300, 0, 60)
+    khung.Position = UDim2.new(0.5, -150, 0, 20)
+    khung.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    khung.BorderSizePixel = 0
+    khung.Parent = giaoDienManHinh
+    local goc = Instance.new("UICorner")
+    goc.CornerRadius = UDim.new(0, 10)
+    goc.Parent = khung
 
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = Color3.new(1, 1, 1)
-    label.TextScaled = true
-    label.Font = Enum.Font.GothamBold
-    label.Parent = frame
+    local nhan = Instance.new("TextLabel")
+    nhan.Size = UDim2.new(1, 0, 1, 0)
+    nhan.BackgroundTransparency = 1
+    nhan.Text = vanBan
+    nhan.TextColor3 = Color3.new(1, 1, 1)
+    nhan.TextScaled = true
+    nhan.Font = Enum.Font.GothamBold
+    nhan.Parent = khung
 
-    -- Animate in
-    frame.Size = UDim2.new(0, 0, 0, 0)
-    TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Size = UDim2.new(0, 300, 0, 60)}):Play()
+    -- Hiệu ứng xuất hiện
+    khung.Size = UDim2.new(0, 0, 0, 0)
+    DichVuChuyểnĐộng:Create(khung, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Size = UDim2.new(0, 300, 0, 60)}):Play()
     
-    -- Fade out after 3s
+    -- Hiệu ứng mờ dần sau 3 giây
     wait(3)
-    TweenService:Create(frame, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-    TweenService:Create(label, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+    DichVuChuyểnĐộng:Create(khung, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+    DichVuChuyểnĐộng:Create(nhan, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
     wait(0.5)
-    screenGui:Destroy()
+    giaoDienManHinh:Destroy()
 end
 
--- Show notification once on load
-showNotification(lang.en.notification)
+-- Hiển thị thông báo khi tải
+hienThongBao(ngonNgu.vi.thongBao)
 
--- Rainbow Color Function
-local function getRainbowColor()
-    local time = tick() * 0.5
-    local r = math.sin(time) * 0.5 + 0.5
-    local g = math.sin(time + 2) * 0.5 + 0.5
-    local b = math.sin(time + 4) * 0.5 + 0.5
-    return Color3.new(r, g, b)
-end
-
--- ESP Function
-local function createESP(targetPlayer)
-    if targetPlayer == player or not targetPlayer.Character then return end
-    local character = targetPlayer.Character
-    local root = character:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-
-    local highlight = Instance.new("Highlight")
-    highlight.Adornee = character
-    highlight.FillTransparency = 0.5
-    highlight.OutlineColor = Color3.new(1, 1, 1)
-    highlight.OutlineTransparency = 0
-    highlight.Parent = character
-    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-
-    local billboard = Instance.new("BillboardGui")
-    billboard.Name = "ESPBillboard"
-    billboard.Adornee = root
-    billboard.Size = UDim2.new(0, 100, 0, 50)
-    billboard.StudsOffset = Vector3.new(0, 3, 0)
-    billboard.AlwaysOnTop = true
-    billboard.Parent = character
-
-    local distanceLabel = Instance.new("TextLabel")
-    distanceLabel.Size = UDim2.new(1, 0, 1, 0)
-    distanceLabel.BackgroundTransparency = 1
-    distanceLabel.TextColor3 = Color3.new(1, 1, 1)
-    distanceLabel.TextScaled = true
-    distanceLabel.Font = Enum.Font.GothamBold
-    distanceLabel.Parent = billboard
-
-    local connection
-    connection = RunService.RenderStepped:Connect(function()
-        if not espEnabled or not targetPlayer.Character or not character.Parent or not root.Parent then
-            highlight:Destroy()
-            billboard:Destroy()
-            connection:Disconnect()
-            return
-        end
-        highlight.FillColor = getRainbowColor()
-        local distance = (rootPart.Position - root.Position).Magnitude / 3 -- Studs to meters
-        distanceLabel.Text = string.format("%.1f m", distance)
-    end)
-
-    table.insert(espConnections, connection)
-end
-
-local function toggleESP()
-    espEnabled = not espEnabled
-    for _, connection in ipairs(espConnections) do
-        connection:Disconnect()
-    end
-    espConnections = {}
+-- Hàm bật/tắt xuyên tường
+local function batTatXuyenTuong()
+    xuyenTuongKichHoat = not xuyenTuongKichHoat
+    if ketNoiXuyenTuong then ketNoiXuyenTuong:Disconnect() end
     
-    if espEnabled then
-        for _, targetPlayer in ipairs(Players:GetPlayers()) do
-            createESP(targetPlayer)
-        end
-        Players.PlayerAdded:Connect(createESP)
-    end
-end
-
--- Noclip Function
-local function toggleNoclip()
-    noclipEnabled = not noclipEnabled
-    if noclipConnection then noclipConnection:Disconnect() end
-    
-    if noclipEnabled then
-        noclipConnection = RunService.Stepped:Connect(function()
-            for _, part in pairs(character:GetDescendants()) do
-                if part:IsA("BasePart") and part.CanCollide then
-                    part.CanCollide = false
+    if xuyenTuongKichHoat then
+        ketNoiXuyenTuong = DichVuChay.Stepped:Connect(function()
+            for _, phan in pairs(nhanVat:GetDescendants()) do
+                if phan:IsA("BasePart") and phan.CanCollide then
+                    phan.CanCollide = false
                 end
             end
         end)
     end
 end
 
--- Infinite Run Function
-local function toggleInfiniteRun()
-    infiniteRunEnabled = not infiniteRunEnabled
-    if runConnection then runConnection:Disconnect() end
+-- Hàm bật/tắt chạy vô hạn
+local function batTatChayVoHan()
+    chayVoHanKichHoat = not chayVoHanKichHoat
+    if ketNoiChay then ketNoiChay:Disconnect() end
     
-    if infiniteRunEnabled then
-        runConnection = RunService.Heartbeat:Connect(function()
-            if humanoid.MoveDirection.Magnitude > 0 then
-                rootPart.Velocity = humanoid.MoveDirection * runSpeed
+    if chayVoHanKichHoat then
+        ketNoiChay = DichVuChay.Heartbeat:Connect(function()
+            if nhanVatHumanoid.MoveDirection.Magnitude > 0 then
+                phanGoc.Velocity = nhanVatHumanoid.MoveDirection * tocDoChay
             end
         end)
     end
 end
 
--- Jump Hack
-local function toggleJump()
-    jumpEnabled = not jumpEnabled
-    humanoid.JumpPower = jumpEnabled and jumpPower or 50
+-- Hàm bật/tắt nhảy cao
+local function batTatNhayCao()
+    nhayCaoKichHoat = not nhayCaoKichHoat
+    nhanVatHumanoid.JumpPower = nhayCaoKichHoat and doCaoNhay or 50
 end
 
--- Update UI Language
-local function updateLanguage()
-    local currentLang = vietnameseEnabled and lang.vi or lang.en
-    title.Text = currentLang.title
-    speedLabel.Text = currentLang.speedLabel
-    speedInput.PlaceholderText = currentLang.speedPlaceholder
-    runButton.Text = infiniteRunEnabled and currentLang.runButtonOn or currentLang.runButton
-    jumpLabel.Text = currentLang.jumpLabel
-    jumpInput.PlaceholderText = currentLang.jumpPlaceholder
-    jumpButton.Text = jumpEnabled and currentLang.jumpButtonOn or currentLang.jumpButton
-    noclipButton.Text = noclipEnabled and currentLang.noclipButtonOn or currentLang.noclipButton
-    espButton.Text = espEnabled and currentLang.espButtonOn or currentLang.espButton
-    translateButton.Text = vietnameseEnabled and currentLang.translateButtonOn or currentLang.translateButton
+-- Hàm cập nhật ngôn ngữ giao diện
+local function capNhatNgonNgu()
+    local ngonNguHienTai = tiengVietKichHoat and ngonNgu.vi or ngonNgu.en
+    tieuDe.Text = ngonNguHienTai.tieuDe
+    nhanTocDo.Text = ngonNguHienTai.nhanTocDo
+    oNhapTocDo.PlaceholderText = ngonNguHienTai.goiYTocDo
+    nutChay.Text = chayVoHanKichHoat and ngonNguHienTai.nutChayBat or ngonNguHienTai.nutChay
+    nhanNhay.Text = ngonNguHienTai.nhanNhay
+    oNhapNhay.PlaceholderText = ngonNguHienTai.goiYNhay
+    nutNhay.Text = nhayCaoKichHoat and ngonNguHienTai.nutNhayBat or ngonNguHienTai.nutNhay
+    nutXuyenTuong.Text = xuyenTuongKichHoat and ngonNguHienTai.nutXuyenTuongBat or ngonNguHienTai.nutXuyenTuong
+    nutChuyenNgonNgu.Text = tiengVietKichHoat and ngonNguHienTai.nutChuyenNgonNguBat or ngonNguHienTai.nutChuyenNgonNgu
 end
 
--- Create GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "KiradaHubBeta"
-screenGui.Parent = player:WaitForChild("PlayerGui")
-screenGui.ResetOnSpawn = false
+-- Tạo giao diện
+local giaoDienManHinh = Instance.new("ScreenGui")
+giaoDienManHinh.Name = "KiradaHubBeta"
+giaoDienManHinh.Parent = nguoiChoi:WaitForChild("PlayerGui")
+giaoDienManHinh.ResetOnSpawn = false
 
--- Main Frame
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 350, 0, 550) -- Increased height to accommodate new input
-mainFrame.Position = UDim2.new(0.5, -175, 0.5, -275)
-mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-mainFrame.BorderSizePixel = 0
-mainFrame.Parent = screenGui
+-- Khung chính
+local khungChinh = Instance.new("Frame")
+khungChinh.Size = UDim2.new(0, 350, 0, 450)
+khungChinh.Position = UDim2.new(0.5, -175, 0.5, -225)
+khungChinh.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+khungChinh.BorderSizePixel = 0
+khungChinh.Parent = giaoDienManHinh
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 15)
-corner.Parent = mainFrame
+local goc = Instance.new("UICorner")
+goc.CornerRadius = UDim.new(0, 15)
+goc.Parent = khungChinh
 
--- Blur effect
-local blur = Instance.new("BlurEffect")
-blur.Size = 20
-blur.Parent = Lighting
+-- Hiệu ứng mờ
+local hieuUngMo = Instance.new("BlurEffect")
+hieuUngMo.Size = 20
+hieuUngMo.Parent = AnhSang
 
--- Title
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 50)
-title.BackgroundTransparency = 1
-title.Text = lang.en.title
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextScaled = true
-title.Font = Enum.Font.GothamBold
-title.Parent = mainFrame
+-- Tiêu đề
+local tieuDe = Instance.new("TextLabel")
+tieuDe.Size = UDim2.new(1, 0, 0, 50)
+tieuDe.BackgroundTransparency = 1
+tieuDe.Text = ngonNgu.vi.tieuDe
+tieuDe.TextColor3 = Color3.fromRGB(255, 255, 255)
+tieuDe.TextScaled = true
+tieuDe.Font = Enum.Font.GothamBold
+tieuDe.Parent = khungChinh
 
--- Speed Input
-local speedLabel = Instance.new("TextLabel")
-speedLabel.Size = UDim2.new(1, 0, 0, 30)
-speedLabel.Position = UDim2.new(0, 0, 0, 60)
-speedLabel.BackgroundTransparency = 1
-speedLabel.Text = lang.en.speedLabel
-speedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-speedLabel.TextScaled = true
-speedLabel.Font = Enum.Font.Gotham
-speedLabel.Parent = mainFrame
+-- Ô nhập tốc độ
+local nhanTocDo = Instance.new("TextLabel")
+nhanTocDo.Size = UDim2.new(1, 0, 0, 30)
+nhanTocDo.Position = UDim2.new(0, 0, 0, 60)
+nhanTocDo.BackgroundTransparency = 1
+nhanTocDo.Text = ngonNgu.vi.nhanTocDo
+nhanTocDo.TextColor3 = Color3.fromRGB(200, 200, 200)
+nhanTocDo.TextScaled = true
+nhanTocDo.Font = Enum.Font.Gotham
+nhanTocDo.Parent = khungChinh
+nhanTocDo.Visible = false
 
-local speedInput = Instance.new("TextBox")
-speedInput.Size = UDim2.new(1, -20, 0, 30)
-speedInput.Position = UDim2.new(0, 10, 0, 90)
-speedInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-speedInput.BorderSizePixel = 0
-speedInput.Text = tostring(runSpeed)
-speedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedInput.PlaceholderText = lang.en.speedPlaceholder
-speedInput.TextScaled = true
-speedInput.Font = Enum.Font.Gotham
-speedInput.Parent = mainFrame
-speedInput.Visible = false -- Initially hidden
+local oNhapTocDo = Instance.new("TextBox")
+oNhapTocDo.Size = UDim2.new(1, -20, 0, 30)
+oNhapTocDo.Position = UDim2.new(0, 10, 0, 90)
+oNhapTocDo.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+oNhapTocDo.BorderSizePixel = 0
+oNhapTocDo.Text = tostring(tocDoChay)
+oNhapTocDo.TextColor3 = Color3.fromRGB(255, 255, 255)
+oNhapTocDo.PlaceholderText = ngonNgu.vi.goiYTocDo
+oNhapTocDo.TextScaled = true
+oNhapTocDo.Font = Enum.Font.Gotham
+oNhapTocDo.Parent = khungChinh
+oNhapTocDo.Visible = false
 
-local speedCorner = Instance.new("UICorner")
-speedCorner.CornerRadius = UDim.new(0, 5)
-speedCorner.Parent = speedInput
+local gocTocDo = Instance.new("UICorner")
+gocTocDo.CornerRadius = UDim.new(0, 5)
+gocTocDo.Parent = oNhapTocDo
 
-speedInput.FocusLost:Connect(function()
-    local num = tonumber(speedInput.Text)
-    if num and num > 0 then
-        runSpeed = num
+oNhapTocDo.FocusLost:Connect(function()
+    local so = tonumber(oNhapTocDo.Text)
+    if so and so > 0 then
+        tocDoChay = so
     else
-        speedInput.Text = tostring(runSpeed)
+        oNhapTocDo.Text = tostring(tocDoChay)
     end
 end)
 
--- Jump Power Input
-local jumpLabel = Instance.new("TextLabel")
-jumpLabel.Size = UDim2.new(1, 0, 0, 30)
-jumpLabel.Position = UDim2.new(0, 0, 0, 130)
-jumpLabel.BackgroundTransparency = 1
-jumpLabel.Text = lang.en.jumpLabel
-jumpLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-jumpLabel.TextScaled = true
-jumpLabel.Font = Enum.Font.Gotham
-jumpLabel.Parent = mainFrame
-jumpLabel.Visible = false -- Initially hidden
+-- Ô nhập độ cao nhảy
+local nhanNhay = Instance.new("TextLabel")
+nhanNhay.Size = UDim2.new(1, 0, 0, 30)
+nhanNhay.Position = UDim2.new(0, 0, 0, 130)
+nhanNhay.BackgroundTransparency = 1
+nhanNhay.Text = ngonNgu.vi.nhanNhay
+nhanNhay.TextColor3 = Color3.fromRGB(200, 200, 200)
+nhanNhay.TextScaled = true
+nhanNhay.Font = Enum.Font.Gotham
+nhanNhay.Parent = khungChinh
+nhanNhay.Visible = false
 
-local jumpInput = Instance.new("TextBox")
-jumpInput.Size = UDim2.new(1, -20, 0, 30)
-jumpInput.Position = UDim2.new(0, 10, 0, 160)
-jumpInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-jumpInput.BorderSizePixel = 0
-jumpInput.Text = tostring(jumpPower)
-jumpInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-jumpInput.PlaceholderText = lang.en.jumpPlaceholder
-jumpInput.TextScaled = true
-jumpInput.Font = Enum.Font.Gotham
-jumpInput.Parent = mainFrame
-jumpInput.Visible = false -- Initially hidden
+local oNhapNhay = Instance.new("TextBox")
+oNhapNhay.Size = UDim2.new(1, -20, 0, 30)
+oNhapNhay.Position = UDim2.new(0, 10, 0, 160)
+oNhapNhay.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+oNhapNhay.BorderSizePixel = 0
+oNhapNhay.Text = tostring(doCaoNhay)
+oNhapNhay.TextColor3 = Color3.fromRGB(255, 255, 255)
+oNhapNhay.PlaceholderText = ngonNgu.vi.goiYNhay
+oNhapNhay.TextScaled = true
+oNhapNhay.Font = Enum.Font.Gotham
+oNhapNhay.Parent = khungChinh
+oNhapNhay.Visible = false
 
-local jumpCorner = Instance.new("UICorner")
-jumpCorner.CornerRadius = UDim.new(0, 5)
-jumpCorner.Parent = jumpInput
+local gocNhay = Instance.new("UICorner")
+gocNhay.CornerRadius = UDim.new(0, 5)
+gocNhay.Parent = oNhapNhay
 
-jumpInput.FocusLost:Connect(function()
-    local num = tonumber(jumpInput.Text)
-    if num and num > 0 then
-        jumpPower = num
-        if jumpEnabled then
-            humanoid.JumpPower = jumpPower
+oNhapNhay.FocusLost:Connect(function()
+    local so = tonumber(oNhapNhay.Text)
+    if so and so > 0 then
+        doCaoNhay = so
+        if nhayCaoKichHoat then
+            nhanVatHumanoid.JumpPower = doCaoNhay
         end
     else
-        jumpInput.Text = tostring(jumpPower)
+        oNhapNhay.Text = tostring(doCaoNhay)
     end
 end)
 
--- Run Button
-local runButton = Instance.new("TextButton")
-runButton.Size = UDim2.new(0.8, 0, 0, 40)
-runButton.Position = UDim2.new(0.1, 0, 0, 200)
-runButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
-runButton.BorderSizePixel = 0
-runButton.Text = lang.en.runButton
-runButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-runButton.TextScaled = true
-runButton.Font = Enum.Font.GothamBold
-runButton.Parent = mainFrame
+-- Nút chạy vô hạn
+local nutChay = Instance.new("TextButton")
+nutChay.Size = UDim2.new(0.8, 0, 0, 40)
+nutChay.Position = UDim2.new(0.1, 0, 0, 200)
+nutChay.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
+nutChay.BorderSizePixel = 0
+nutChay.Text = ngonNgu.vi.nutChay
+nutChay.TextColor3 = Color3.fromRGB(255, 255, 255)
+nutChay.TextScaled = true
+nutChay.TextFont = Enum.Font.GothamBold
+nutChay.Parent = khungChinh
 
-local runCorner = Instance.new("UICorner")
-runCorner.CornerRadius = UDim.new(0, 8)
-runCorner.Parent = runButton
+local gocChay = Instance.new("UICorner")
+gocChay.CornerRadius = UDim.new(0, 8)
+gocChay.Parent = nutChay
 
-runButton.MouseButton1Click:Connect(function()
-    toggleInfiniteRun()
-    runButton.Text = infiniteRunEnabled and lang[vietnameseEnabled and "vi" or "en"].runButtonOn or lang[vietnameseEnabled and "vi" or "en"].runButton
-    runButton.BackgroundColor3 = infiniteRunEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
-    speedInput.Visible = infiniteRunEnabled
-    speedLabel.Visible = infiniteRunEnabled
+nutChay.MouseButton1Click:Connect(function()
+    batTatChayVoHan()
+    nutChay.Text = chayVoHanKichHoat and ngonNgu[tiengVietKichHoat and "vi" or "en"].nutChayBat or ngonNgu[tiengVietKichHoat and "vi" or "en"].nutChay
+    nutChay.BackgroundColor3 = chayVoHanKichHoat and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
+    oNhapTocDo.Visible = chayVoHanKichHoat
+    nhanTocDo.Visible = chayVoHanKichHoat
 end)
 
--- Jump Button
-local jumpButton = Instance.new("TextButton")
-jumpButton.Size = UDim2.new(0.8, 0, 0, 40)
-jumpButton.Position = UDim2.new(0.1, 0, 0, 250)
-jumpButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
-jumpButton.BorderSizePixel = 0
-jumpButton.Text = lang.en.jumpButton
-jumpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-jumpButton.TextScaled = true
-jumpButton.Font = Enum.Font.GothamBold
-jumpButton.Parent = mainFrame
+-- Nút nhảy cao
+local nutNhay = Instance.new("TextButton")
+nutNhay.Size = UDim2.new(0.8, 0, 0, 40)
+nutNhay.Position = UDim2.new(0.1, 0, 0, 250)
+nutNhay.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
+nutNhay.BorderSizePixel = 0
+nutNhay.Text = ngonNgu.vi.nutNhay
+nutNhay.TextColor3 = Color3.fromRGB(255, 255, 255)
+nutNhay.TextScaled = true
+nutNhay.Font = Enum.Font.GothamBold
+nutNhay.Parent = khungChinh
 
-local jumpCorner = Instance.new("UICorner")
-jumpCorner.CornerRadius = UDim.new(0, 8)
-jumpCorner.Parent = jumpButton
+local gocNhayNut = Instance.new("UICorner")
+gocNhayNut.CornerRadius = UDim.new(0, 8)
+gocNhayNut.Parent = nutNhay
 
-jumpButton.MouseButton1Click:Connect(function()
-    toggleJump()
-    jumpButton.Text = jumpEnabled and lang[vietnameseEnabled and "vi" or "en"].jumpButtonOn or lang[vietnameseEnabled and "vi" or "en"].jumpButton
-    jumpButton.BackgroundColor3 = jumpEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
-    jumpInput.Visible = jumpEnabled
-    jumpLabel.Visible = jumpEnabled
+nutNhay.MouseButton1Click:Connect(function()
+    batTatNhayCao()
+    nutNhay.Text = nhayCaoKichHoat and ngonNgu[tiengVietKichHoat and "vi" or "en"].nutNhayBat or ngonNgu[tiengVietKichHoat and "vi" or "en"].nutNhay
+    nutNhay.BackgroundColor3 = nhayCaoKichHoat and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
+    oNhapNhay.Visible = nhayCaoKichHoat
+    nhanNhay.Visible = nhayCaoKichHoat
 end)
 
--- Noclip Button
-local noclipButton = Instance.new("TextButton")
-noclipButton.Size = UDim2.new(0.8, 0, 0, 40)
-noclipButton.Position = UDim2.new(0.1, 0, 0, 300)
-noclipButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
-noclipButton.BorderSizePixel = 0
-noclipButton.Text = lang.en.noclipButton
-noclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-noclipButton.TextScaled = true
-noclipButton.Font = Enum.Font.GothamBold
-noclipButton.Parent = mainFrame
+-- Nút xuyên tường
+local nutXuyenTuong = Instance.new("TextButton")
+nutXuyenTuong.Size = UDim2.new(0.8, 0, 0, 40)
+nutXuyenTuong.Position = UDim2.new(0.1, 0, 0, 300)
+nutXuyenTuong.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
+nutXuyenTuong.BorderSizePixel = 0
+nutXuyenTuong.Text = ngonNgu.vi.nutXuyenTuong
+nutXuyenTuong.TextColor3 = Color3.fromRGB(255, 255, 255)
+nutXuyenTuong.TextScaled = true
+nutXuyenTuong.Font = Enum.Font.GothamBold
+nutXuyenTuong.Parent = khungChinh
 
-local noclipCorner = Instance.new("UICorner")
-noclipCorner.CornerRadius = UDim.new(0, 8)
-noclipCorner.Parent = noclipButton
+local gocXuyenTuong = Instance.new("UICorner")
+gocXuyenTuong.CornerRadius = UDim.new(0, 8)
+gocXuyenTuong.Parent = nutXuyenTuong
 
-noclipButton.MouseButton1Click:Connect(function()
-    toggleNoclip()
-    noclipButton.Text = noclipEnabled and lang[vietnameseEnabled and "vi" or "en"].noclipButtonOn or lang[vietnameseEnabled and "vi" or "en"].noclipButton
-    noclipButton.BackgroundColor3 = noclipEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
+nutXuyenTuong.MouseButton1Click:Connect(function()
+    batTatXuyenTuong()
+    nutXuyenTuong.Text = xuyenTuongKichHoat and ngonNgu[tiengVietKichHoat and "vi" or "en"].nutXuyenTuongBat or ngonNgu[tiengVietKichHoat and "vi" or "en"].nutXuyenTuong
+    nutXuyenTuong.BackgroundColor3 = xuyenTuongKichHoat and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
 end)
 
--- ESP Button
-local espButton = Instance.new("TextButton")
-espButton.Size = UDim2.new(0.8, 0, 0, 40)
-espButton.Position = UDim2.new(0.1, 0, 0, 350)
-espButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
-espButton.BorderSizePixel = 0
-espButton.Text = lang.en.espButton
-espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-espButton.TextScaled = true
-espButton.Font = Enum.Font.GothamBold
-espButton.Parent = mainFrame
+-- Nút chuyển ngôn ngữ
+local nutChuyenNgonNgu = Instance.new("TextButton")
+nutChuyenNgonNgu.Size = UDim2.new(0.8, 0, 0, 40)
+nutChuyenNgonNgu.Position = UDim2.new(0.1, 0, 0, 350)
+nutChuyenNgonNgu.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
+nutChuyenNgonNgu.BorderSizePixel = 0
+nutChuyenNgonNgu.Text = ngonNgu.vi.nutChuyenNgonNgu
+nutChuyenNgonNgu.TextColor3 = Color3.fromRGB(255, 255, 255)
+nutChuyenNgonNgu.TextScaled = true
+nutChuyenNgonNgu.Font = Enum.Font.GothamBold
+nutChuyenNgonNgu.Parent = khungChinh
 
-local espCorner = Instance.new("UICorner")
-espCorner.CornerRadius = UDim.new(0, 8)
-espCorner.Parent = espButton
+local gocChuyenNgonNgu = Instance.new("UICorner")
+gocChuyenNgonNgu.CornerRadius = UDim.new(0, 8)
+gocChuyenNgonNgu.Parent = nutChuyenNgonNgu
 
-espButton.MouseButton1Click:Connect(function()
-    toggleESP()
-    espButton.Text = espEnabled and lang[vietnameseEnabled and "vi" or "en"].espButtonOn or lang[vietnameseEnabled and "vi" or "en"].espButton
-    espButton.BackgroundColor3 = espEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
+nutChuyenNgonNgu.MouseButton1Click:Connect(function()
+    tiengVietKichHoat = not tiengVietKichHoat
+    capNhatNgonNgu()
+    nutChuyenNgonNgu.BackgroundColor3 = tiengVietKichHoat and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
 end)
 
--- Translate Button
-local translateButton = Instance.new("TextButton")
-translateButton.Size = UDim2.new(0.8, 0, 0, 40)
-translateButton.Position = UDim2.new(0.1, 0, 0, 400)
-translateButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
-translateButton.BorderSizePixel = 0
-translateButton.Text = lang.en.translateButton
-translateButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-translateButton.TextScaled = true
-translateButton.Font = Enum.Font.GothamBold
-translateButton.Parent = mainFrame
+-- Nút đóng
+local nutDong = Instance.new("TextButton")
+nutDong.Size = UDim2.new(0, 30, 0, 30)
+nutDong.Position = UDim2.new(1, -35, 0, 5)
+nutDong.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+nutDong.BorderSizePixel = 0
+nutDong.Text = ngonNgu.vi.nutDong
+nutDong.TextColor3 = Color3.fromRGB(255, 255, 255)
+nutDong.TextScaled = true
+nutDong.Font = Enum.Font.GothamBold
+nutDong.Parent = khungChinh
 
-local translateCorner = Instance.new("UICorner")
-translateCorner.CornerRadius = UDim.new(0, 8)
-translateCorner.Parent = translateButton
+local gocDong = Instance.new("UICorner")
+gocDong.CornerRadius = UDim.new(0, 5)
+gocDong.Parent = nutDong
 
-translateButton.MouseButton1Click:Connect(function()
-    vietnameseEnabled = not vietnameseEnabled
-    updateLanguage()
-    translateButton.BackgroundColor3 = vietnameseEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
+nutDong.MouseButton1Click:Connect(function()
+    giaoDienManHinh:Destroy()
+    if ketNoiXuyenTuong then ketNoiXuyenTuong:Disconnect() end
+    if ketNoiChay then ketNoiChay:Disconnect() end
+    hieuUngMo:Destroy()
 end)
 
--- Close Button
-local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 30, 0, 30)
-closeButton.Position = UDim2.new(1, -35, 0, 5)
-closeButton.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
-closeButton.BorderSizePixel = 0
-closeButton.Text = lang.en.closeButton
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextScaled = true
-closeButton.Font = Enum.Font.GothamBold
-closeButton.Parent = mainFrame
+-- Nút bật/tắt menu
+local nutBatTat = Instance.new("TextButton")
+nutBatTat.Size = UDim2.new(0, 40, 0, 40)
+nutBatTat.Position = UDim2.new(1, -50, 0.5, 0)
+nutBatTat.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
+nutBatTat.BorderSizePixel = 0
+nutBatTat.Text = "☰"
+nutBatTat.TextColor3 = Color3.fromRGB(255, 255, 255)
+nutBatTat.TextScaled = true
+nutBatTat.Font = Enum.Font.GothamBold
+nutBatTat.Parent = giaoDienManHinh
 
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 5)
-closeCorner.Parent = closeButton
+local gocBatTat = Instance.new("UICorner")
+gocBatTat.CornerRadius = UDim.new(0, 8)
+gocBatTat.Parent = nutBatTat
 
-closeButton.MouseButton1Click:Connect(function()
-    screenGui:Destroy()
-    if noclipConnection then noclipConnection:Disconnect() end
-    if runConnection then runConnection:Disconnect() end
-    for _, connection in ipairs(espConnections) do
-        connection:Disconnect()
+nutBatTat.MouseButton1Click:Connect(function()
+    khungChinh.Visible = not khungChinh.Visible
+end)
+
+-- Chức năng kéo thả menu
+local dangKeo = false
+local viTriBatDau
+local viTriKhungBanDau
+
+khungChinh.InputBegan:Connect(function(nhapLieu)
+    if nhapLieu.UserInputType == Enum.UserInputType.MouseButton1 then
+        dangKeo = true
+        viTriBatDau = nhapLieu.Position
+        viTriKhungBanDau = khungChinh.Position
     end
-    blur:Destroy()
 end)
 
--- Animate GUI in
-mainFrame.Size = UDim2.new(0, 0, 0, 0)
-TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 350, 0, 550)}):Play()
-
--- Handle character respawn
-player.CharacterAdded:Connect(function(newChar)
-    character = newChar
-    humanoid = character:WaitForChild("Humanoid")
-    rootPart = character:WaitForChild("HumanoidRootPart")
-    if noclipEnabled then toggleNoclip() end
-    if infiniteRunEnabled then toggleInfiniteRun() end
-    if jumpEnabled then toggleJump() end
-    if espEnabled then toggleESP(); toggleESP() end -- Refresh ESP
+khungChinh.InputChanged:Connect(function(nhapLieu)
+    if dangKeo and nhapLieu.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = nhapLieu.Position - viTriBatDau
+        khungChinh.Position = UDim2.new(
+            viTriKhungBanDau.X.Scale,
+            viTriKhungBanDau.X.Offset + delta.X,
+            viTriKhungBanDau.Y.Scale,
+            viTriKhungBanDau.Y.Offset + delta.Y
+        )
+    end
 end)
 
-print("Kirada Hub Beta loaded! Demo mode with ESP active. Use at your own risk 🥺")
+khungChinh.InputEnded:Connect(function(nhapLieu)
+    if nhapLieu.UserInputType == Enum.UserInputType.MouseButton1 then
+        dangKeo = false
+    end
+end)
+
+-- Hiệu ứng xuất hiện khung chính
+khungChinh.Size = UDim2.new(0, 0, 0, 0)
+DichVuChuyểnĐộng:Create(khungChinh, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 350, 0, 450)}):Play()
+
+-- Xử lý khi nhân vật tái sinh
+nguoiChoi.CharacterAdded:Connect(function(nhanVatMoi)
+    nhanVat = nhanVatMoi
+    nhanVatHumanoid = nhanVat:WaitForChild("Humanoid")
+    phanGoc = nhanVat:WaitForChild("HumanoidRootPart")
+    if xuyenTuongKichHoat then batTatXuyenTuong() end
+    if chayVoHanKichHoat then batTatChayVoHan() end
+    if nhayCaoKichHoat then batTatNhayCao() end
+end)
+
+print("Kirada Hub Beta đã tải! Chế độ thử nghiệm. Sử dụng với rủi ro của riêng bạn 🥺")
