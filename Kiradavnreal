@@ -1,207 +1,374 @@
--- Script: KiraDaHub Beta Menu (Anime Style for Exploits)
--- Tác giả: Grok (tạo theo yêu cầu)
--- Ngày: 19/10/2025
--- Tương thích: Codex, Fluxus, Arceus, Delta, Krnl
+-- Kirada Beta (Demo) - Roblox Client Hack Script
+-- Features: Infinite Run (with speed input), Jump Hack, Noclip Toggle, Rainbow ESP with Distance
+-- Notification: One-time error message on load
+-- GUI: Modern UI with blur and gradients
+-- Author: Grok (demo version) - Use at your own risk!
 
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
 
--- Tạo GUI
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KiraDaHub"
-ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.ResetOnSpawn = false
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
 
--- Frame chính (Menu)
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 250, 0, 350)
-MainFrame.Position = UDim2.new(0.5, -125, 0.5, -175)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MainFrame.BorderSizePixel = 0
-MainFrame.Visible = false
-MainFrame.Parent = ScreenGui
+-- Variables
+local infiniteRunEnabled = false
+local jumpEnabled = false
+local noclipEnabled = false
+local espEnabled = false
+local runSpeed = 16 -- Default speed
+local noclipConnection
+local runConnection
+local espConnections = {}
 
--- Góc bo tròn
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 10)
-UICorner.Parent = MainFrame
+-- One-time Notification
+local function showNotification(text)
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Parent = player:WaitForChild("PlayerGui")
+    screenGui.Name = "KiradaNotification"
+    screenGui.ResetOnSpawn = false
 
--- Tiêu đề (Anime Style)
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 50)
-Title.BackgroundTransparency = 1
-Title.Text = "KiraDaHub Beta 😱"
-Title.TextColor3 = Color3.fromRGB(255, 105, 180) -- Màu hồng anime
-Title.TextScaled = true
-Title.Font = Enum.Font.Anime
-Title.Parent = MainFrame
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 60)
+    frame.Position = UDim2.new(0.5, -150, 0, 20)
+    frame.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    frame.BorderSizePixel = 0
+    frame.Parent = screenGui
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = frame
 
--- Biến trạng thái
-local isMenuOpen = false
-local isSpeedEnabled = false
-local isJumpEnabled = false
-local isFlyEnabled = false
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold
+    label.Parent = frame
 
--- Hàm tạo ô nhập liệu nhỏ gọn
-local function CreateInputBox(name, placeholder, positionY)
-    local InputBox = Instance.new("TextBox")
-    InputBox.Size = UDim2.new(0.8, 0, 0, 30)
-    InputBox.Position = UDim2.new(0.1, 0, 0, positionY)
-    InputBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    InputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    InputBox.PlaceholderText = placeholder
-    InputBox.Text = ""
-    InputBox.TextScaled = true
-    InputBox.Font = Enum.Font.Anime
-    InputBox.Parent = MainFrame
-    local UICornerInput = Instance.new("UICorner")
-    UICornerInput.CornerRadius = UDim.new(0, 5)
-    UICornerInput.Parent = InputBox
-    return InputBox
+    -- Animate in
+    frame.Size = UDim2.new(0, 0, 0, 0)
+    TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Size = UDim2.new(0, 300, 0, 60)}):Play()
+    
+    -- Fade out after 3s
+    wait(3)
+    TweenService:Create(frame, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(label, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+    wait(0.5)
+    screenGui:Destroy()
 end
 
--- Hàm tạo nút bật/tắt nhỏ gọn
-local function CreateToggleButton(name, positionY, callback)
-    local ToggleButton = Instance.new("TextButton")
-    ToggleButton.Size = UDim2.new(0.8, 0, 0, 30)
-    ToggleButton.Position = UDim2.new(0.1, 0, 0, positionY)
-    ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ToggleButton.Text = name .. ": OFF"
-    ToggleButton.TextScaled = true
-    ToggleButton.Font = Enum.Font.Anime
-    ToggleButton.Parent = MainFrame
-    local UICornerButton = Instance.new("UICorner")
-    UICornerButton.CornerRadius = UDim.new(0, 5)
-    UICornerButton.Parent = ToggleButton
+-- Show notification once on load
+showNotification("Lỗi lâu lâu xin thông cảm 🥺")
 
-    local isToggled = false
-    ToggleButton.MouseButton1Click:Connect(function()
-        isToggled = not isToggled
-        ToggleButton.Text = name .. (isToggled and ": ON" or ": OFF")
-        ToggleButton.BackgroundColor3 = isToggled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(50, 50, 50)
-        callback(isToggled)
+-- Rainbow Color Function
+local function getRainbowColor()
+    local time = tick() * 0.5
+    local r = math.sin(time) * 0.5 + 0.5
+    local g = math.sin(time + 2) * 0.5 + 0.5
+    local b = math.sin(time + 4) * 0.5 + 0.5
+    return Color3.new(r, g, b)
+end
+
+-- ESP Function
+local function createESP(targetPlayer)
+    if targetPlayer == player or not targetPlayer.Character then return end
+    local character = targetPlayer.Character
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Adornee = character
+    highlight.FillTransparency = 0.5
+    highlight.OutlineColor = Color3.new(1, 1, 1)
+    highlight.OutlineTransparency = 0
+    highlight.Parent = character
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "ESPBillboard"
+    billboard.Adornee = root
+    billboard.Size = UDim2.new(0, 100, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = character
+
+    local distanceLabel = Instance.new("TextLabel")
+    distanceLabel.Size = UDim2.new(1, 0, 1, 0)
+    distanceLabel.BackgroundTransparency = 1
+    distanceLabel.TextColor3 = Color3.new(1, 1, 1)
+    distanceLabel.TextScaled = true
+    distanceLabel.Font = Enum.Font.GothamBold
+    distanceLabel.Parent = billboard
+
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if not espEnabled or not targetPlayer.Character or not character.Parent or not root.Parent then
+            highlight:Destroy()
+            billboard:Destroy()
+            connection:Disconnect()
+            return
+        end
+        highlight.FillColor = getRainbowColor()
+        local distance = (rootPart.Position - root.Position).Magnitude / 3 -- Studs to meters
+        distanceLabel.Text = string.format("%.1f m", distance)
     end)
-    return ToggleButton
+
+    table.insert(espConnections, connection)
 end
 
--- Ô nhập ID người chơi
-local PlayerIDInput = CreateInputBox("PlayerID", "Nhập ID hoặc tên", 60)
-
--- Nút dịch chuyển
-local TeleportButton = Instance.new("TextButton")
-TeleportButton.Size = UDim2.new(0.8, 0, 0, 30)
-TeleportButton.Position = UDim2.new(0.1, 0, 0, 100)
-TeleportButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-TeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-TeleportButton.Text = "Dịch Chuyển"
-TeleportButton.TextScaled = true
-TeleportButton.Font = Enum.Font.Anime
-TeleportButton.Parent = MainFrame
-local UICornerTeleport = Instance.new("UICorner")
-UICornerTeleport.CornerRadius = UDim.new(0, 5)
-UICornerTeleport.Parent = TeleportButton
-
--- Hàm tìm người chơi theo ID hoặc tên
-local function FindPlayer(input)
-    local lowerInput = input:lower()
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player.UserId == tonumber(input) or player.Name:lower():find(lowerInput) then
-            return player
-        end
+local function toggleESP()
+    espEnabled = not espEnabled
+    for _, connection in ipairs(espConnections) do
+        connection:Disconnect()
     end
-    return nil
+    espConnections = {}
+    
+    if espEnabled then
+        for _, targetPlayer in ipairs(Players:GetPlayers()) do
+            createESP(targetPlayer)
+        end
+        Players.PlayerAdded:Connect(createESP)
+    end
 end
 
--- Xử lý dịch chuyển
-TeleportButton.MouseButton1Click:Connect(function()
-    local targetPlayer = FindPlayer(PlayerIDInput.Text)
-    if targetPlayer and targetPlayer.Character and LocalPlayer.Character then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
-    end
-end)
-
--- Hiển thị khoảng cách cầu vồng
-local DistanceLabel = Instance.new("TextLabel")
-DistanceLabel.Size = UDim2.new(0.8, 0, 0, 30)
-DistanceLabel.Position = UDim2.new(0.1, 0, 0, 140)
-DistanceLabel.BackgroundTransparency = 1
-DistanceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-DistanceLabel.Text = "Khoảng cách: 0m"
-DistanceLabel.TextScaled = true
-DistanceLabel.Font = Enum.Font.Anime
-DistanceLabel.Parent = MainFrame
-
--- Cập nhật khoảng cách
-game:GetService("RunService").RenderStepped:Connect(function()
-    local targetPlayer = FindPlayer(PlayerIDInput.Text)
-    if targetPlayer and targetPlayer.Character and LocalPlayer.Character then
-        local distance = (LocalPlayer.Character.HumanoidRootPart.Position - targetPlayer.Character.HumanoidRootPart.Position).Magnitude
-        DistanceLabel.Text = string.format("Khoảng cách: %.2fm", distance / 3) -- Quy đổi sang mét
-        DistanceLabel.TextColor3 = Color3.fromRGB(
-            math.sin(tick()) * 127 + 128,
-            math.sin(tick() + 2) * 127 + 128,
-            math.sin(tick() + 4) * 127 + 128
-        ) -- Hiệu ứng cầu vồng
-    else
-        DistanceLabel.Text = "Khoảng cách: N/A"
-    end
-end)
-
--- Tốc độ không giới hạn
-local SpeedToggle = CreateToggleButton("Tốc Độ", 180, function(state)
-    isSpeedEnabled = state
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = state and 100 or 16
-    end
-end)
-
--- Nhảy không giới hạn
-local JumpToggle = CreateToggleButton("Nhảy", 220, function(state)
-    isJumpEnabled = state
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.JumpPower = state and 100 or 50
-    end
-end)
-
--- Bay không giới hạn
-local FlyToggle = CreateToggleButton("Bay", 260, function(state)
-    isFlyEnabled = state
-    if state then
-        local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        bodyVelocity.Name = "FlyVelocity"
-        bodyVelocity.Parent = LocalPlayer.Character.HumanoidRootPart
-
-        local flyConnection
-        flyConnection = UserInputService.InputBegan:Connect(function(input)
-            if isFlyEnabled and input.KeyCode == Enum.KeyCode.Space then
-                bodyVelocity.Velocity = Vector3.new(0, 50, 0)
+-- Noclip Function
+local function toggleNoclip()
+    noclipEnabled = not noclipEnabled
+    if noclipConnection then noclipConnection:Disconnect() end
+    
+    if noclipEnabled then
+        noclipConnection = RunService.Stepped:Connect(function()
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide then
+                    part.CanCollide = false
+                end
             end
         end)
-        UserInputService.InputEnded:Connect(function(input)
-            if isFlyEnabled and input.KeyCode == Enum.KeyCode.Space then
-                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    end
+end
+
+-- Infinite Run Function
+local function toggleInfiniteRun()
+    infiniteRunEnabled = not infiniteRunEnabled
+    if runConnection then runConnection:Disconnect() end
+    
+    if infiniteRunEnabled then
+        runConnection = RunService.Heartbeat:Connect(function()
+            if humanoid.MoveDirection.Magnitude > 0 then
+                rootPart.Velocity = humanoid.MoveDirection * runSpeed
             end
         end)
+    end
+end
+
+-- Jump Hack
+local function toggleJump()
+    jumpEnabled = not jumpEnabled
+    humanoid.JumpPower = jumpEnabled and 100 or 50
+end
+
+-- Create GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "KiradaBeta"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 350, 0, 450)
+mainFrame.Position = UDim2.new(0.5, -175, 0.5, -225)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 15)
+corner.Parent = mainFrame
+
+-- Blur effect
+local blur = Instance.new("BlurEffect")
+blur.Size = 20
+blur.Parent = Lighting
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 50)
+title.BackgroundTransparency = 1
+title.Text = "Kirada Beta (Demo)"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = mainFrame
+
+-- Speed Input
+local speedLabel = Instance.new("TextLabel")
+speedLabel.Size = UDim2.new(1, 0, 0, 30)
+speedLabel.Position = UDim2.new(0, 0, 0, 60)
+speedLabel.BackgroundTransparency = 1
+speedLabel.Text = "Tốc độ chạy:"
+speedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+speedLabel.TextScaled = true
+speedLabel.Font = Enum.Font.Gotham
+speedLabel.Parent = mainFrame
+
+local speedInput = Instance.new("TextBox")
+speedInput.Size = UDim2.new(1, -20, 0, 30)
+speedInput.Position = UDim2.new(0, 10, 0, 90)
+speedInput.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+speedInput.BorderSizePixel = 0
+speedInput.Text = "16"
+speedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedInput.PlaceholderText = "Nhập tốc độ (ví dụ: 50)"
+speedInput.TextScaled = true
+speedInput.Font = Enum.Font.Gotham
+speedInput.Parent = mainFrame
+
+local speedCorner = Instance.new("UICorner")
+speedCorner.CornerRadius = UDim.new(0, 5)
+speedCorner.Parent = speedInput
+
+speedInput.FocusLost:Connect(function()
+    local num = tonumber(speedInput.Text)
+    if num and num > 0 then
+        runSpeed = num
     else
-        if LocalPlayer.Character and LocalPlayer.Character.HumanoidRootPart:FindFirstChild("FlyVelocity") then
-            LocalPlayer.Character.HumanoidRootPart.FlyVelocity:Destroy()
-        end
+        speedInput.Text = tostring(runSpeed)
     end
 end)
 
--- Bật/tắt menu
-UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.Insert then
-        isMenuOpen = not isMenuOpen
-        MainFrame.Visible = isMenuOpen
-        Title.Text = isMenuOpen and "KiraDaHub Beta 😱" or "KiraDaHub Beta 😭"
-    end
+-- Run Button
+local runButton = Instance.new("TextButton")
+runButton.Size = UDim2.new(0.8, 0, 0, 40)
+runButton.Position = UDim2.new(0.1, 0, 0, 130)
+runButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
+runButton.BorderSizePixel = 0
+runButton.Text = "Chạy Không Giới Hạn: OFF"
+runButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+runButton.TextScaled = true
+runButton.Font = Enum.Font.GothamBold
+runButton.Parent = mainFrame
+
+local runCorner = Instance.new("UICorner")
+runCorner.CornerRadius = UDim.new(0, 8)
+runCorner.Parent = runButton
+
+runButton.MouseButton1Click:Connect(function()
+    toggleInfiniteRun()
+    runButton.Text = infiniteRunEnabled and "Chạy Không Giới Hạn: ON" or "Chạy Không Giới Hạn: OFF"
+    runButton.BackgroundColor3 = infiniteRunEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
 end)
 
--- Thông báo tải script
-print("KiraDaHub Beta đã được tải! Nhấn Insert để mở/tắt menu.")
+-- Jump Button
+local jumpButton = Instance.new("TextButton")
+jumpButton.Size = UDim2.new(0.8, 0, 0, 40)
+jumpButton.Position = UDim2.new(0.1, 0, 0, 180)
+jumpButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
+jumpButton.BorderSizePixel = 0
+jumpButton.Text = "Nhảy Cao: OFF"
+jumpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+jumpButton.TextScaled = true
+jumpButton.Font = Enum.Font.GothamBold
+jumpButton.Parent = mainFrame
+
+local jumpCorner = Instance.new("UICorner")
+jumpCorner.CornerRadius = UDim.new(0, 8)
+jumpCorner.Parent = jumpButton
+
+jumpButton.MouseButton1Click:Connect(function()
+    toggleJump()
+    jumpButton.Text = jumpEnabled and "Nhảy Cao: ON" or "Nhảy Cao: OFF"
+    jumpButton.BackgroundColor3 = jumpEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
+end)
+
+-- Noclip Button
+local noclipButton = Instance.new("TextButton")
+noclipButton.Size = UDim2.new(0.8, 0, 0, 40)
+noclipButton.Position = UDim2.new(0.1, 0, 0, 230)
+noclipButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
+noclipButton.BorderSizePixel = 0
+noclipButton.Text = "Xuyên Tường: OFF"
+noclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+noclipButton.TextScaled = true
+noclipButton.Font = Enum.Font.GothamBold
+noclipButton.Parent = mainFrame
+
+local noclipCorner = Instance.new("UICorner")
+noclipCorner.CornerRadius = UDim.new(0, 8)
+noclipCorner.Parent = noclipButton
+
+noclipButton.MouseButton1Click:Connect(function()
+    toggleNoclip()
+    noclipButton.Text = noclipEnabled and "Xuyên Tường: ON" or "Xuyên Tường: OFF"
+    noclipButton.BackgroundColor3 = noclipEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
+end)
+
+-- ESP Button
+local espButton = Instance.new("TextButton")
+espButton.Size = UDim2.new(0.8, 0, 0, 40)
+espButton.Position = UDim2.new(0.1, 0, 0, 280)
+espButton.BackgroundColor3 = Color3.fromRGB(46, 125, 50)
+espButton.BorderSizePixel = 0
+espButton.Text = "ESP Cầu Vồng: OFF"
+espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+espButton.TextScaled = true
+espButton.Font = Enum.Font.GothamBold
+espButton.Parent = mainFrame
+
+local espCorner = Instance.new("UICorner")
+espCorner.CornerRadius = UDim.new(0, 8)
+espCorner.Parent = espButton
+
+espButton.MouseButton1Click:Connect(function()
+    toggleESP()
+    espButton.Text = espEnabled and "ESP Cầu Vồng: ON" or "ESP Cầu Vồng: OFF"
+    espButton.BackgroundColor3 = espEnabled and Color3.fromRGB(76, 175, 80) or Color3.fromRGB(46, 125, 50)
+end)
+
+-- Close Button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 5)
+closeCorner.Parent = closeButton
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+    if noclipConnection then noclipConnection:Disconnect() end
+    if runConnection then runConnection:Disconnect() end
+    for _, connection in ipairs(espConnections) do
+        connection:Disconnect()
+    end
+    blur:Destroy()
+end)
+
+-- Animate GUI in
+mainFrame.Size = UDim2.new(0, 0, 0, 0)
+TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 350, 0, 450)}):Play()
+
+-- Handle character respawn
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoid = character:WaitForChild("Humanoid")
+    rootPart = character:WaitForChild("HumanoidRootPart")
+    if noclipEnabled then toggleNoclip() end
+    if infiniteRunEnabled then toggleInfiniteRun() end
+    if jumpEnabled then toggleJump() end
+    if espEnabled then toggleESP(); toggleESP() end -- Refresh ESP
+end)
+
+print("Kirada Beta loaded! Demo mode with ESP active. Use at your own risk 🥺")
