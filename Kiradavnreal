@@ -1,4 +1,4 @@
--- Script: Kirada Demo (Cập nhật: Fix Đi Trên Nước cho Blox Fruits, Tương thích mọi game, Tiếng Việt)
+-- Script: Kirada Demo (Cập nhật: Xóa Auto Hit, Fix Đi Trên Nước cho mọi game, Fix Chạy/Nhảy, Tiếng Việt)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -36,8 +36,8 @@ toggleCorner.Parent = toggleButton
 
 -- Frame chính
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 720, 0, 250)
-mainFrame.Position = UDim2.new(0.5, -360, 0.5, -125)
+mainFrame.Size = UDim2.new(0, 600, 0, 250)
+mainFrame.Position = UDim2.new(0.5, -300, 0.5, -125)
 mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 mainFrame.BackgroundTransparency = 0.3
 mainFrame.BorderSizePixel = 0
@@ -63,7 +63,7 @@ scrollingFrame.BackgroundTransparency = 1
 scrollingFrame.BorderSizePixel = 0
 scrollingFrame.ScrollBarThickness = 8
 scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(34, 139, 34)
-scrollingFrame.CanvasSize = UDim2.new(2.5, 0, 0, 0)
+scrollingFrame.CanvasSize = UDim2.new(2, 0, 0, 0)
 scrollingFrame.ScrollingDirection = Enum.ScrollingDirection.X
 scrollingFrame.Parent = mainFrame
 
@@ -117,7 +117,7 @@ end
 
 -- Tạo giao diện ngang
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(0, 700, 0, 40)
+titleLabel.Size = UDim2.new(0, 580, 0, 40)
 titleLabel.Position = UDim2.new(0, 10, 0, 10)
 titleLabel.BackgroundTransparency = 1
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -139,21 +139,22 @@ local noclipToggle = createButton("NoclipToggle", UDim2.new(0, 10, 0, 110), "Xuy
 local godModeToggle = createButton("GodModeToggle", UDim2.new(0, 140, 0, 110), "Bất Tử: TẮT")
 local espToggle = createButton("EspToggle", UDim2.new(0, 270, 0, 110), "ESP: TẮT")
 local hitboxToggle = createButton("HitboxToggle", UDim2.new(0, 400, 0, 110), "Hitbox: TẮT")
-local autoHitToggle = createButton("AutoHitToggle", UDim2.new(0, 530, 0, 110), "Auto Hit: TẮT")
-local waterWalkToggle = createButton("WaterWalkToggle", UDim2.new(0, 660, 0, 110), "Đi Trên Nước: TẮT")
+local waterWalkToggle = createButton("WaterWalkToggle", UDim2.new(0, 530, 0, 110), "Đi Trên Nước: TẮT")
 
 -- Biến trạng thái
 local isNoClip = false
 local isGodMode = false
 local isESP = false
 local isHitbox = false
-local isAutoHit = false
 local isWaterWalk = false
+local customWalkSpeed = 16 -- Giá trị mặc định
+local customJumpPower = 50 -- Giá trị mặc định
 local noclipConnection = nil
 local espConnections = {}
 local hitboxParts = {}
-local autoHitConnection = nil
 local waterWalkConnection = nil
+local speedJumpConnection = nil
+local waterPlatform = nil
 
 -- Hàm thông báo
 local function notify(message)
@@ -168,9 +169,9 @@ end
 toggleButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = not mainFrame.Visible
     if mainFrame.Visible then
-        TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0.5, -360, 0.5, -125)}):Play()
+        TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0.5, -300, 0.5, -125)}):Play()
     else
-        TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0.5, -360, 1, 0)}):Play()
+        TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0.5, -300, 1, 0)}):Play()
     end
 end)
 
@@ -180,26 +181,34 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Xử lý tốc độ
+-- Xử lý tốc độ (Set và loop để override)
 speedButton.MouseButton1Click:Connect(function()
     local speed = tonumber(speedInput.Text)
     if speed then
-        humanoid.WalkSpeed = math.clamp(speed, 0, 1000)
-        notify("Đã đặt tốc độ: " .. speed)
+        customWalkSpeed = math.clamp(speed, 0, 1000)
+        notify("Đã đặt tốc độ: " .. customWalkSpeed)
     else
         notify("Vui lòng nhập số hợp lệ cho tốc độ!")
     end
 end)
 
--- Xử lý nhảy
+-- Xử lý nhảy (Set và loop để override)
 jumpButton.MouseButton1Click:Connect(function()
     local jumpPower = tonumber(jumpInput.Text)
     if jumpPower then
-        humanoid.JumpPower = math.clamp(jumpPower, 0, 500)
+        customJumpPower = math.clamp(jumpPower, 0, 500)
         humanoid.UseJumpPower = true
-        notify("Đã đặt sức nhảy: " .. jumpPower)
+        notify("Đã đặt sức nhảy: " .. customJumpPower)
     else
         notify("Vui lòng nhập số hợp lệ cho sức nhảy!")
+    end
+end)
+
+-- Loop để set WalkSpeed và JumpPower liên tục
+speedJumpConnection = RunService.Heartbeat:Connect(function()
+    if character and humanoid then
+        humanoid.WalkSpeed = customWalkSpeed
+        humanoid.JumpPower = customJumpPower
     end
 end)
 
@@ -386,92 +395,49 @@ hitboxToggle.MouseButton1Click:Connect(function()
     end
 end)
 
--- Xử lý Auto Hit
-local function findNearestTarget()
-    local nearest = nil
-    local nearestDist = math.huge
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            local dist = (rootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
-            if dist < nearestDist then
-                nearest = p.Character
-                nearestDist = dist
-            end
-        end
-    end
-    for _, npc in pairs(workspace:GetDescendants()) do
-        if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and npc ~= player.Character then
-            local dist = (rootPart.Position - npc.HumanoidRootPart.Position).Magnitude
-            if dist < nearestDist then
-                nearest = npc
-                nearestDist = dist
-            end
-        end
-    end
-    return nearest
-end
-
-autoHitToggle.MouseButton1Click:Connect(function()
-    isAutoHit = not isAutoHit
-    autoHitToggle.Text = "Auto Hit: " .. (isAutoHit and "BẬT" or "TẮT")
-    
-    if isAutoHit then
-        autoHitConnection = RunService.Heartbeat:Connect(function()
-            if character then
-                local nearest = findNearestTarget()
-                if nearest then
-                    local attackRemote = ReplicatedStorage:FindFirstChild("AttackRemote")
-                    if attackRemote then
-                        attackRemote:FireServer(nearest.HumanoidRootPart.Position)
-                    end
-                    local tool = character:FindFirstChildWhichIsA("Tool")
-                    if tool and tool:FindFirstChild("Handle") then
-                        tool.Handle.CFrame = nearest.HumanoidRootPart.CFrame
-                    end
-                end
-            end
-        end)
-        notify("Đã bật Auto Hit cho Player/NPC")
-    else
-        if autoHitConnection then
-            autoHitConnection:Disconnect()
-            autoHitConnection = nil
-        end
-        notify("Đã tắt Auto Hit")
-    end
-end)
-
--- Xử lý Đi Trên Nước (Fix cho Blox Fruits)
+-- Xử lý Đi Trên Nước (Fix cho mọi game, bao gồm Blox Fruits)
 waterWalkToggle.MouseButton1Click:Connect(function()
     isWaterWalk = not isWaterWalk
     waterWalkToggle.Text = "Đi Trên Nước: " .. (isWaterWalk and "BẬT" or "TẮT")
     
     if isWaterWalk then
+        -- Tạo platform vô hình
+        waterPlatform = Instance.new("Part")
+        waterPlatform.Size = Vector3.new(10, 0.5, 10)
+        waterPlatform.Transparency = 1
+        waterPlatform.CanCollide = true
+        waterPlatform.Anchored = true
+        waterPlatform.Parent = workspace
+        
         waterWalkConnection = RunService.Stepped:Connect(function()
             if character and rootPart and humanoid then
-                -- RaycastParams để phát hiện nước trong Terrain
+                -- Raycast để tìm bề mặt nước
                 local rayParams = RaycastParams.new()
-                rayParams.FilterDescendantsInstances = {character}
+                rayParams.FilterDescendantsInstances = {character, waterPlatform}
                 rayParams.FilterType = Enum.RaycastFilterType.Blacklist
                 local ray = workspace:Raycast(rootPart.Position, Vector3.new(0, -10, 0), rayParams)
                 
-                -- Kiểm tra Terrain.Water hoặc part tên chứa "water"/"sea"
                 local isOnWater = false
                 local waterY = nil
-                if Terrain:WorldToCell(rootPart.Position).Y <= Terrain.WaterLevel then
+                -- Kiểm tra Terrain.Water (cho Blox Fruits và game khác)
+                local cell = Terrain:WorldToCell(rootPart.Position)
+                if Terrain:GetMaterialVoxels(cell.X, cell.Y, cell.Z).Material == Enum.Material.Water then
                     isOnWater = true
-                    waterY = Terrain.WaterLevel
-                elseif ray and ray.Instance and (ray.Instance.Name:lower():find("water") or ray.Instance.Name:lower():find("sea")) then
+                    waterY = cell.Y * 4 + Terrain.WaterLevel -- Điều chỉnh theo Terrain
+                elseif ray and ray.Instance and (ray.Instance.Name:lower():find("water") or ray.Instance.Name:lower():find("sea") or ray.Instance.Name:lower():find("ocean")) then
                     isOnWater = true
                     waterY = ray.Position.Y
                 end
                 
                 if isOnWater and waterY then
-                    -- Đặt player trên bề mặt nước
+                    -- Đặt platform dưới chân
+                    waterPlatform.Position = Vector3.new(rootPart.Position.X, waterY + 0.25, rootPart.Position.Z)
+                    -- Điều chỉnh player
                     rootPart.Position = Vector3.new(rootPart.Position.X, waterY + 3, rootPart.Position.Z)
-                    -- Vô hiệu hóa trạng thái bơi trong Blox Fruits
                     humanoid:ChangeState(Enum.HumanoidStateType.Running)
                     humanoid.Sit = false
+                else
+                    waterPlatform.Position = Vector3.new(0, -1000, 0) -- Ẩn platform khi không cần
                 end
             end
         end)
@@ -480,6 +446,10 @@ waterWalkToggle.MouseButton1Click:Connect(function()
         if waterWalkConnection then
             waterWalkConnection:Disconnect()
             waterWalkConnection = nil
+        end
+        if waterPlatform then
+            waterPlatform:Destroy()
+            waterPlatform = nil
         end
         notify("Đã tắt Đi Trên Nước")
     end
