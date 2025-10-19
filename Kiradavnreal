@@ -132,4 +132,377 @@ local speedInput = createTextBox("SpeedInput", UDim2.new(0, 140, 0, 60), "Tốc 
 local jumpButton = createButton("JumpButton", UDim2.new(0, 270, 0, 60), "Đặt Nhảy")
 local jumpInput = createTextBox("JumpInput", UDim2.new(0, 400, 0, 60), "Nhảy (VD: 50)")
 
-l
+local teleportButton = createButton("TeleportButton", UDim2.new(0, 530, 0, 60), "Dịch Chuyển")
+local teleportInput = createTextBox("TeleportInput", UDim2.new(0, 660, 0, 60), "Tên người chơi")
+
+local noclipToggle = createButton("NoclipToggle", UDim2.new(0, 10, 0, 110), "Xuyên Tường: TẮT")
+local godModeToggle = createButton("GodModeToggle", UDim2.new(0, 140, 0, 110), "Bất Tử: TẮT")
+local espToggle = createButton("EspToggle", UDim2.new(0, 270, 0, 110), "ESP: TẮT")
+local hitboxToggle = createButton("HitboxToggle", UDim2.new(0, 400, 0, 110), "Hitbox: TẮT")
+local autoHitToggle = createButton("AutoHitToggle", UDim2.new(0, 530, 0, 110), "Auto Hit: TẮT")
+local waterWalkToggle = createButton("WaterWalkToggle", UDim2.new(0, 660, 0, 110), "Đi Trên Nước: TẮT")
+
+-- Biến trạng thái
+local isNoClip = false
+local isGodMode = false
+local isESP = false
+local isHitbox = false
+local isAutoHit = false
+local isWaterWalk = false
+local noclipConnection = nil
+local espConnections = {}
+local hitboxParts = {}
+local autoHitConnection = nil
+local waterWalkConnection = nil
+
+-- Hàm thông báo
+local function notify(message)
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Kirada Demo",
+        Text = message,
+        Duration = 3
+    })
+end
+
+-- Toggle Menu
+toggleButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+    if mainFrame.Visible then
+        TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0.5, -360, 0.5, -125)}):Play()
+    else
+        TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0.5, -360, 1, 0)}):Play()
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.M then
+        toggleButton.MouseButton1Click:Fire()
+    end
+end)
+
+-- Xử lý tốc độ
+speedButton.MouseButton1Click:Connect(function()
+    local speed = tonumber(speedInput.Text)
+    if speed then
+        humanoid.WalkSpeed = math.clamp(speed, 0, 1000)
+        notify("Đã đặt tốc độ: " .. speed)
+    else
+        notify("Vui lòng nhập số hợp lệ cho tốc độ!")
+    end
+end)
+
+-- Xử lý nhảy
+jumpButton.MouseButton1Click:Connect(function()
+    local jumpPower = tonumber(jumpInput.Text)
+    if jumpPower then
+        humanoid.JumpPower = math.clamp(jumpPower, 0, 500)
+        humanoid.UseJumpPower = true
+        notify("Đã đặt sức nhảy: " .. jumpPower)
+    else
+        notify("Vui lòng nhập số hợp lệ cho sức nhảy!")
+    end
+end)
+
+-- Xử lý dịch chuyển
+teleportButton.MouseButton1Click:Connect(function()
+    local targetName = teleportInput.Text
+    local targetPlayer = nil
+    for _, p in pairs(Players:GetPlayers()) do
+        if p.Name:lower():find(targetName:lower()) then
+            targetPlayer = p
+            break
+        end
+    end
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        rootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 0, 2)
+        notify("Đã dịch chuyển đến: " .. targetPlayer.Name)
+    else
+        notify("Không tìm thấy người chơi hoặc tên không hợp lệ!")
+    end
+end)
+
+-- Xử lý xuyên tường
+noclipToggle.MouseButton1Click:Connect(function()
+    isNoClip = not isNoClip
+    noclipToggle.Text = "Xuyên Tường: " .. (isNoClip and "BẬT" or "TẮT")
+    
+    if isNoClip then
+        noclipConnection = RunService.Stepped:Connect(function()
+            if character then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") and part ~= rootPart then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+        notify("Đã bật Xuyên Tường")
+    else
+        if noclipConnection then
+            noclipConnection:Disconnect()
+            noclipConnection = nil
+        end
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+        notify("Đã tắt Xuyên Tường")
+    end
+end)
+
+-- Xử lý bất tử
+godModeToggle.MouseButton1Click:Connect(function()
+    isGodMode = not isGodMode
+    godModeToggle.Text = "Bất Tử: " .. (isGodMode and "BẬT" or "TẮT")
+    
+    if isGodMode then
+        humanoid.MaxHealth = math.huge
+        humanoid.Health = math.huge
+        notify("Đã bật Bất Tử")
+    else
+        humanoid.MaxHealth = 100
+        humanoid.Health = 100
+        notify("Đã tắt Bất Tử")
+    end
+end)
+
+-- Xử lý ESP Player/NPC (Box, Khoảng cách màu cầu vồng)
+local function createEsp(target)
+    local box = Drawing.new("Square")
+    box.Visible = false
+    box.Color = Color3.fromRGB(255, 255, 255)
+    box.Thickness = 2
+    box.Filled = false
+
+    local distanceText = Drawing.new("Text")
+    distanceText.Visible = false
+    distanceText.Size = 16
+    distanceText.Color = Color3.fromRGB(255, 255, 255)
+    distanceText.Text = ""
+
+    local connection = RunService.RenderStepped:Connect(function()
+        if isESP and target and target.Parent and target:FindFirstChild("HumanoidRootPart") then
+            local root = target.HumanoidRootPart
+            local camera = workspace.CurrentCamera
+            local screenPos, onScreen = camera:WorldToViewportPoint(root.Position)
+            
+            if onScreen then
+                local size = (camera:WorldToViewportPoint(root.Position - Vector3.new(2, 3, 0)).Y - camera:WorldToViewportPoint(root.Position + Vector3.new(2, 3, 0)).Y) / 2
+                box.Size = Vector2.new(size * 1.5, size * 2)
+                box.Position = Vector2.new(screenPos.X - box.Size.X / 2, screenPos.Y - box.Size.Y / 2)
+                box.Visible = true
+                
+                local distance = math.floor((rootPart.Position - root.Position).Magnitude)
+                distanceText.Text = tostring(distance) .. "m"
+                distanceText.Position = Vector2.new(screenPos.X, screenPos.Y - box.Size.Y / 2 - 20)
+                distanceText.Visible = true
+                
+                -- Màu cầu vồng
+                local hue = (tick() % 5) / 5
+                distanceText.Color = Color3.fromHSV(hue, 1, 1)
+            else
+                box.Visible = false
+                distanceText.Visible = false
+            end
+        else
+            box.Visible = false
+            distanceText.Visible = false
+        end
+    end)
+    
+    return {box = box, text = distanceText, connection = connection}
+end
+
+espToggle.MouseButton1Click:Connect(function()
+    isESP = not isESP
+    espToggle.Text = "ESP: " .. (isESP and "BẬT" or "TẮT")
+    
+    if isESP then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= player and p.Character then
+                espConnections[p] = createEsp(p.Character)
+            end
+        end
+        for _, npc in pairs(workspace:GetDescendants()) do
+            if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and npc ~= player.Character then
+                espConnections[npc] = createEsp(npc)
+            end
+        end
+        notify("Đã bật ESP Player/NPC")
+    else
+        for _, esp in pairs(espConnections) do
+            esp.box:Remove()
+            esp.text:Remove()
+            esp.connection:Disconnect()
+        end
+        espConnections = {}
+        notify("Đã tắt ESP Player/NPC")
+    end
+end)
+
+-- Xử lý Hitbox mở rộng
+local function expandHitbox(target)
+    if target and target:FindFirstChild("HumanoidRootPart") then
+        local root = target.HumanoidRootPart
+        local hitboxPart = Instance.new("Part")
+        hitboxPart.Size = root.Size * 3
+        hitboxPart.Transparency = 0.5
+        hitboxPart.CanCollide = false
+        hitboxPart.Anchored = false
+        hitboxPart.Parent = target
+        local weld = Instance.new("WeldConstraint")
+        weld.Part0 = root
+        weld.Part1 = hitboxPart
+        weld.Parent = hitboxPart
+        return hitboxPart
+    end
+end
+
+hitboxToggle.MouseButton1Click:Connect(function()
+    isHitbox = not isHitbox
+    hitboxToggle.Text = "Hitbox: " .. (isHitbox and "BẬT" or "TẮT")
+    
+    if isHitbox then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= player and p.Character then
+                hitboxParts[p] = expandHitbox(p.Character)
+            end
+        end
+        for _, npc in pairs(workspace:GetDescendants()) do
+            if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and npc ~= player.Character then
+                hitboxParts[npc] = expandHitbox(npc)
+            end
+        end
+        notify("Đã bật Hitbox mở rộng cho Player/NPC")
+    else
+        for _, part in pairs(hitboxParts) do
+            if part then part:Destroy() end
+        end
+        hitboxParts = {}
+        notify("Đã tắt Hitbox mở rộng")
+    end
+end)
+
+-- Xử lý Auto Hit
+local function findNearestTarget()
+    local nearest = nil
+    local nearestDist = math.huge
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local dist = (rootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
+            if dist < nearestDist then
+                nearest = p.Character
+                nearestDist = dist
+            end
+        end
+    end
+    for _, npc in pairs(workspace:GetDescendants()) do
+        if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and npc ~= player.Character then
+            local dist = (rootPart.Position - npc.HumanoidRootPart.Position).Magnitude
+            if dist < nearestDist then
+                nearest = npc
+                nearestDist = dist
+            end
+        end
+    end
+    return nearest
+end
+
+autoHitToggle.MouseButton1Click:Connect(function()
+    isAutoHit = not isAutoHit
+    autoHitToggle.Text = "Auto Hit: " .. (isAutoHit and "BẬT" or "TẮT")
+    
+    if isAutoHit then
+        autoHitConnection = RunService.Heartbeat:Connect(function()
+            if character then
+                local nearest = findNearestTarget()
+                if nearest then
+                    local attackRemote = ReplicatedStorage:FindFirstChild("AttackRemote")
+                    if attackRemote then
+                        attackRemote:FireServer(nearest.HumanoidRootPart.Position)
+                    end
+                    local tool = character:FindFirstChildWhichIsA("Tool")
+                    if tool and tool:FindFirstChild("Handle") then
+                        tool.Handle.CFrame = nearest.HumanoidRootPart.CFrame
+                    end
+                end
+            end
+        end)
+        notify("Đã bật Auto Hit cho Player/NPC")
+    else
+        if autoHitConnection then
+            autoHitConnection:Disconnect()
+            autoHitConnection = nil
+        end
+        notify("Đã tắt Auto Hit")
+    end
+end)
+
+-- Xử lý Đi Trên Nước (Fix cho Blox Fruits)
+waterWalkToggle.MouseButton1Click:Connect(function()
+    isWaterWalk = not isWaterWalk
+    waterWalkToggle.Text = "Đi Trên Nước: " .. (isWaterWalk and "BẬT" or "TẮT")
+    
+    if isWaterWalk then
+        waterWalkConnection = RunService.Stepped:Connect(function()
+            if character and rootPart and humanoid then
+                -- RaycastParams để phát hiện nước trong Terrain
+                local rayParams = RaycastParams.new()
+                rayParams.FilterDescendantsInstances = {character}
+                rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+                local ray = workspace:Raycast(rootPart.Position, Vector3.new(0, -10, 0), rayParams)
+                
+                -- Kiểm tra Terrain.Water hoặc part tên chứa "water"/"sea"
+                local isOnWater = false
+                local waterY = nil
+                if Terrain:WorldToCell(rootPart.Position).Y <= Terrain.WaterLevel then
+                    isOnWater = true
+                    waterY = Terrain.WaterLevel
+                elseif ray and ray.Instance and (ray.Instance.Name:lower():find("water") or ray.Instance.Name:lower():find("sea")) then
+                    isOnWater = true
+                    waterY = ray.Position.Y
+                end
+                
+                if isOnWater and waterY then
+                    -- Đặt player trên bề mặt nước
+                    rootPart.Position = Vector3.new(rootPart.Position.X, waterY + 3, rootPart.Position.Z)
+                    -- Vô hiệu hóa trạng thái bơi trong Blox Fruits
+                    humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                    humanoid.Sit = false
+                end
+            end
+        end)
+        notify("Đã bật Đi Trên Nước")
+    else
+        if waterWalkConnection then
+            waterWalkConnection:Disconnect()
+            waterWalkConnection = nil
+        end
+        notify("Đã tắt Đi Trên Nước")
+    end
+end)
+
+-- Xử lý nhân vật reset
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = character:WaitForChild("Humanoid")
+    rootPart = character:WaitForChild("HumanoidRootPart")
+    
+    if isNoClip then
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") and part ~= rootPart then
+                part.CanCollide = false
+            end
+        end
+    end
+    if isGodMode then
+        humanoid.MaxHealth = math.huge
+        humanoid.Health = math.huge
+    end
+end)
+
+-- Thông báo khởi động
+notify("Kirada Demo đã tải! Chạm nút 🌲 để mở menu.")
