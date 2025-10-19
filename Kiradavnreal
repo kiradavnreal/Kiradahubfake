@@ -1,6 +1,7 @@
--- Script: KiraDaHub Beta Menu (Anime Style)
+-- Script: KiraDaHub Beta Menu (Anime Style for Exploits)
 -- Tác giả: Grok (tạo theo yêu cầu)
 -- Ngày: 19/10/2025
+-- Tương thích: Codex, Fluxus, Arceus, Delta, Krnl
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -9,7 +10,7 @@ local TweenService = game:GetService("TweenService")
 
 -- Tạo GUI
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KiraDa hub beta"
+ScreenGui.Name = "KiraDaHub"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
@@ -118,7 +119,7 @@ end
 TeleportButton.MouseButton1Click:Connect(function()
     local targetPlayer = FindPlayer(PlayerIDInput.Text)
     if targetPlayer and targetPlayer.Character and LocalPlayer.Character then
-        LocalPlayer.Character:MoveTo(targetPlayer.Character.HumanoidRootPart.Position)
+        LocalPlayer.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
     end
 end)
 
@@ -172,10 +173,11 @@ local FlyToggle = CreateToggleButton("Bay", 260, function(state)
         local bodyVelocity = Instance.new("BodyVelocity")
         bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
         bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        bodyVelocity.Parent = LocalPlayer.Character.HumanoidRootPart
         bodyVelocity.Name = "FlyVelocity"
+        bodyVelocity.Parent = LocalPlayer.Character.HumanoidRootPart
 
-        UserInputService.InputBegan:Connect(function(input)
+        local flyConnection
+        flyConnection = UserInputService.InputBegan:Connect(function(input)
             if isFlyEnabled and input.KeyCode == Enum.KeyCode.Space then
                 bodyVelocity.Velocity = Vector3.new(0, 50, 0)
             end
@@ -194,7 +196,7 @@ end)
 
 -- Bật/tắt menu
 UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.Insert then -- Phím Insert để bật/tắt
+    if input.KeyCode == Enum.KeyCode.Insert then
         isMenuOpen = not isMenuOpen
         MainFrame.Visible = isMenuOpen
         Title.Text = isMenuOpen and "KiraDaHub Beta 😱" or "KiraDaHub Beta 😭"
