@@ -22,7 +22,7 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 local toggleButton = Instance.new("ImageButton")
 toggleButton.Size = UDim2.new(0, 60, 0, 60)
 toggleButton.Position = UDim2.new(0, 10, 0, 10)
-toggleButton.BackgroundColor3 = Color3.fromRGB(34, 139, 34) -- Xanh lá
+toggleButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0) -- Đỏ máu
 toggleButton.Image = "rbxassetid://89326205091486" -- ID hình ảnh đã xác minh
 toggleButton.Parent = ScreenGui
 toggleButton.Name = "ToggleButton"
@@ -35,8 +35,8 @@ toggleCorner.Parent = toggleButton
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 400, 0, 300)
 mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-mainFrame.BackgroundTransparency = 0.3
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20) -- Đen đậm u ám
+mainFrame.BackgroundTransparency = 0.5
 mainFrame.BorderSizePixel = 0
 mainFrame.Visible = false
 mainFrame.Parent = ScreenGui
@@ -47,8 +47,8 @@ mainCorner.Parent = mainFrame
 
 local gradient = Instance.new("UIGradient")
 gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 100, 0)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 50, 0))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)), -- Xám đậm
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 10)) -- Đen
 })
 gradient.Rotation = 45
 gradient.Parent = mainFrame
@@ -59,7 +59,7 @@ scrollingFrame.Position = UDim2.new(0, 0, 0, 0)
 scrollingFrame.BackgroundTransparency = 1
 scrollingFrame.BorderSizePixel = 0
 scrollingFrame.ScrollBarThickness = 8
-scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(34, 139, 34)
+scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(139, 0, 0) -- Đỏ máu
 scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 400)
 scrollingFrame.ScrollingDirection = Enum.ScrollingDirection.Y
 scrollingFrame.Parent = mainFrame
@@ -68,8 +68,8 @@ scrollingFrame.Parent = mainFrame
 local fishingFrame = Instance.new("Frame")
 fishingFrame.Size = UDim2.new(0, 200, 0, 120)
 fishingFrame.Position = UDim2.new(0.5, -100, 0.5, -60)
-fishingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-fishingFrame.BackgroundTransparency = 0.3
+fishingFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20) -- Đen đậm u ám
+fishingFrame.BackgroundTransparency = 0.5
 fishingFrame.BorderSizePixel = 0
 fishingFrame.Visible = false
 fishingFrame.Parent = ScreenGui
@@ -80,8 +80,8 @@ fishingCorner.Parent = fishingFrame
 
 local fishingGradient = Instance.new("UIGradient")
 fishingGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 100, 0)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 50, 0))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)), -- Xám đậm
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 10)) -- Đen
 })
 fishingGradient.Rotation = 45
 fishingGradient.Parent = fishingFrame
@@ -91,8 +91,8 @@ local function createTextBox(name, position, placeholder)
     local textBox = Instance.new("TextBox")
     textBox.Size = UDim2.new(0, 120, 0, 40)
     textBox.Position = position
-    textBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- Xám đậm
+    textBox.TextColor3 = Color3.fromRGB(139, 0, 0) -- Đỏ máu
     textBox.PlaceholderText = placeholder
     textBox.Text = ""
     textBox.TextScaled = true
@@ -112,8 +112,8 @@ local function createButton(name, position, text, parent)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(0, 120, 0, 40)
     button.Position = position
-    button.BackgroundColor3 = Color3.fromRGB(34, 139, 34)
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.BackgroundColor3 = Color3.fromRGB(139, 0, 0) -- Đỏ máu
+    button.TextColor3 = Color3.fromRGB(255, 255, 255) -- Trắng cho tương phản
     button.Text = text
     button.TextScaled = true
     button.Font = Enum.Font.SourceSansBold
@@ -125,10 +125,10 @@ local function createButton(name, position, text, parent)
     btnCorner.Parent = button
     
     button.MouseEnter:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 160, 50)}):Play()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(178, 34, 34)}):Play() -- Đỏ sẫm khi hover
     end)
     button.MouseLeave:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(34, 139, 34)}):Play()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(139, 0, 0)}):Play() -- Đỏ máu khi rời
     end)
     
     return button
@@ -139,7 +139,7 @@ local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(0, 380, 0, 40)
 titleLabel.Position = UDim2.new(0, 10, 0, 10)
 titleLabel.BackgroundTransparency = 1
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextColor3 = Color3.fromRGB(139, 0, 0) -- Đỏ máu
 titleLabel.Text = "🌲 Kirada Demo Menu 🌲"
 titleLabel.TextScaled = true
 titleLabel.Font = Enum.Font.SourceSansBold
@@ -157,7 +157,7 @@ local teleportInput = createTextBox("TeleportInput", UDim2.new(0, 270, 0, 110), 
 
 -- Hàng 3
 local noclipToggle = createButton("NoclipToggle", UDim2.new(0, 10, 0, 160), "Xuyên Tường: TẮT", scrollingFrame)
-local espToggle = createButton("EspToggle", UDim2.new(0, 140, 0, 160), "ESP: TẮT", scrollingFrame)
+local antiAfkToggle = createButton("AntiAfkToggle", UDim2.new(0, 140, 0, 160), "Anti-AFK: TẮT", scrollingFrame) -- Nút Anti-AFK mới
 local fishingToggle = createButton("FishingToggle", UDim2.new(0, 270, 0, 160), "Câu Cá: TẮT", scrollingFrame)
 
 -- Hàng 4
@@ -170,18 +170,18 @@ local autoFishButton = createButton("AutoFishButton", UDim2.new(0, 10, 0, 70), "
 
 -- Biến trạng thái
 local isNoClip = false
-local isESP = false
 local isFishing = false
 local isBypassFishing = false
 local isAutoFishing = false
 local isFlying = false
+local isAntiAfk = false -- Biến trạng thái cho Anti-AFK
 local customWalkSpeed = 16 -- Giá trị mặc định
 local customJumpPower = 50 -- Giá trị mặc định
 local noclipConnection = nil
-local espConnections = {}
 local fishingConnection = nil
 local waterWalkConnection = nil
 local waterPlatform = nil
+local antiAfkConnection = nil -- Connection cho Anti-AFK
 
 -- Hàm thông báo
 local function notify(message)
@@ -289,76 +289,26 @@ noclipToggle.MouseButton1Click:Connect(function()
     end
 end)
 
--- Xử lý ESP Player/NPC
-local function createEsp(target)
-    local box = Drawing.new("Square")
-    box.Visible = false
-    box.Color = Color3.fromRGB(255, 255, 255)
-    box.Thickness = 2
-    box.Filled = false
-
-    local distanceText = Drawing.new("Text")
-    distanceText.Visible = false
-    distanceText.Size = 16
-    distanceText.Color = Color3.fromRGB(255, 255, 255)
-    distanceText.Text = ""
-
-    local connection = RunService.RenderStepped:Connect(function()
-        if isESP and target and target.Parent and target:FindFirstChild("HumanoidRootPart") then
-            local root = target.HumanoidRootPart
-            local camera = workspace.CurrentCamera
-            local screenPos, onScreen = camera:WorldToViewportPoint(root.Position)
-            
-            if onScreen then
-                local size = (camera:WorldToViewportPoint(root.Position - Vector3.new(2, 3, 0)).Y - camera:WorldToViewportPoint(root.Position + Vector3.new(2, 3, 0)).Y) / 2
-                box.Size = Vector2.new(size * 1.5, size * 2)
-                box.Position = Vector2.new(screenPos.X - box.Size.X / 2, screenPos.Y - box.Size.Y / 2)
-                box.Visible = true
-                
-                local distance = math.floor((rootPart.Position - root.Position).Magnitude)
-                distanceText.Text = tostring(distance) .. "m"
-                distanceText.Position = Vector2.new(screenPos.X, screenPos.Y - box.Size.Y / 2 - 20)
-                distanceText.Visible = true
-                
-                local hue = (tick() % 5) / 5
-                distanceText.Color = Color3.fromHSV(hue, 1, 1)
-            else
-                box.Visible = false
-                distanceText.Visible = false
-            end
-        else
-            box.Visible = false
-            distanceText.Visible = false
-        end
-    end)
+-- Xử lý Anti-AFK
+antiAfkToggle.MouseButton1Click:Connect(function()
+    isAntiAfk = not isAntiAfk
+    antiAfkToggle.Text = "Anti-AFK: " .. (isAntiAfk and "BẬT" or "TẮT")
     
-    return {box = box, text = distanceText, connection = connection}
-end
-
-espToggle.MouseButton1Click:Connect(function()
-    isESP = not isESP
-    espToggle.Text = "ESP: " .. (isESP and "BẬT" or "TẮT")
-    
-    if isESP then
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= player and p.Character then
-                espConnections[p] = createEsp(p.Character)
+    if isAntiAfk then
+        antiAfkConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            -- Mỗi 5 phút (300 giây), mô phỏng nhấn chuột trái
+            if tick() % 300 < 0.1 then
+                game:GetService("VirtualUser"):ClickButton1(Vector2.new(0, 0))
+                notify("Anti-AFK: Đã mô phỏng nhấn chuột để tránh kick!")
             end
-        end
-        for _, npc in pairs(workspace:GetDescendants()) do
-            if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and npc ~= player.Character then
-                espConnections[npc] = createEsp(npc)
-            end
-        end
-        notify("Đã bật ESP Player/NPC")
+        end)
+        notify("Đã bật Anti-AFK (nhấn chuột mỗi 5 phút)")
     else
-        for _, esp in pairs(espConnections) do
-            esp.box:Remove()
-            esp.text:Remove()
-            esp.connection:Disconnect()
+        if antiAfkConnection then
+            antiAfkConnection:Disconnect()
+            antiAfkConnection = nil
         end
-        espConnections = {}
-        notify("Đã tắt ESP Player/NPC")
+        notify("Đã tắt Anti-AFK")
     end
 end)
 
@@ -371,7 +321,8 @@ waterWalkToggle.MouseButton1Click:Connect(function()
     if isWaterWalk then
         waterPlatform = Instance.new("Part")
         waterPlatform.Size = Vector3.new(10, 0.5, 10)
-        waterPlatform.Transparency = 1
+        waterPlatform.Transparency = 0.8 -- Tăng độ trong suốt cho u ám
+        waterPlatform.BrickColor = BrickColor.new("Really black") -- Đen u ám
         waterPlatform.CanCollide = true
         waterPlatform.Anchored = true
         waterPlatform.Parent = workspace
