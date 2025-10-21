@@ -182,6 +182,7 @@ local fishingConnection = nil
 local waterWalkConnection = nil
 local waterPlatform = nil
 local antiAfkConnection = nil -- Connection cho Anti-AFK
+local runAnimation = nil -- Animation chạy
 
 -- Hàm thông báo
 local function notify(message)
@@ -257,19 +258,21 @@ teleportButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Xử lý xuyên tường
+-- Xử lý xuyên tường (fix bằng cách thêm xử lý va chạm với địa hình và các phần khác)
 noclipToggle.MouseButton1Click:Connect(function()
     isNoClip = not isNoClip
     noclipToggle.Text = "Xuyên Tường: " .. (isNoClip and "BẬT" or "TẮT")
     
     if isNoClip then
-        noclipConnection = RunService.Stepped:Connect(function()
+        noclipConnection = RunService.Stepped:Connect(function(_, step)
             if character then
                 for _, part in pairs(character:GetDescendants()) do
-                    if part:IsA("BasePart") and part ~= rootPart then
+                    if part:IsA("BasePart") then
                         part.CanCollide = false
                     end
                 end
+                -- Di chuyển nhân vật để tránh kẹt
+                rootPart.Velocity = Vector3.new(0, 0, 0)
             end
         end)
         notify("Đã bật Xuyên Tường")
@@ -509,10 +512,63 @@ player.CharacterAdded:Connect(function(newCharacter)
     
     if isNoClip then
         for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") and part ~= rootPart then
+            if part:IsA("BasePart") then
                 part.CanCollide = false
             end
         end
+    end
+    
+    -- Tải lại animation chạy khi nhân vật reset
+    local animator = humanoid:WaitForChild("Animator")
+    local runAnim = Instance.new("Animation")
+    runAnim.AnimationId = "rbxassetid://616163682" -- ID animation chạy (thay bằng ID animation bạn muốn)
+    runAnimation = animator:LoadAnimation(runAnim)
+end)
+
+-- Thêm animation chạy cho player
+local runAnimConnection = RunService.Heartbeat:Connect(function()
+    if character and humanoid and runAnimation then
+        if humanoid.MoveDirection.Magnitude > 0 then
+            if not runAnimation.IsPlaying then
+                runAnimation:Play()
+            end
+        else
+            if runAnimation.IsPlaying then
+                runAnimation:Stop()
+            end
+        end
+    end
+end)
+
+-- Tải animation chạy ban đầu
+local animator = humanoid:WaitForChild("Animator")
+local runAnim = Instance.new("Animation")
+runAnim.AnimationId = "rbxassetid://616163682" -- ID animation chạy (thay bằng ID animation bạn muốn, ví dụ animation chạy nhanh)
+runAnimation = animator:LoadAnimation(runAnim)
+
+-- Thêm chức năng di chuyển menu bằng cảm ứng
+local dragging = false
+local dragInput = nil
+local dragStart = nil
+local startPos = nil
+
+toggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = toggleButton.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+toggleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch and dragging then
+        local delta = input.Position - dragStart
+        toggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
 
