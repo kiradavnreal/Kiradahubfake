@@ -13,17 +13,24 @@ local rootPart = character:WaitForChild("HumanoidRootPart")
 
 -- Tạo GUI Menu
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KiradaDemo"
+ScreenGui.Name = "KiradaHalloween"
 ScreenGui.Parent = player.PlayerGui
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Nút Toggle Menu (Mobile/PC)
+-- Tạo âm thanh Halloween
+local halloweenSound = Instance.new("Sound")
+halloweenSound.SoundId = "rbxassetid://1839246711" -- Âm thanh Halloween
+halloweenSound.Looped = true
+halloweenSound.Volume = 0.5
+halloweenSound.Parent = ScreenGui
+
+-- Nút Toggle Menu
 local toggleButton = Instance.new("ImageButton")
 toggleButton.Size = UDim2.new(0, 60, 0, 60)
 toggleButton.Position = UDim2.new(0, 10, 0, 10)
-toggleButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0) -- Đỏ máu
-toggleButton.Image = "rbxassetid://89326205091486" -- ID hình ảnh đã xác minh
+toggleButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
+toggleButton.Image = "rbxassetid://89326205091486"
 toggleButton.Parent = ScreenGui
 toggleButton.Name = "ToggleButton"
 
@@ -35,7 +42,7 @@ toggleCorner.Parent = toggleButton
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 400, 0, 300)
 mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20) -- Đen đậm u ám
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 mainFrame.BackgroundTransparency = 0.5
 mainFrame.BorderSizePixel = 0
 mainFrame.Visible = false
@@ -47,8 +54,8 @@ mainCorner.Parent = mainFrame
 
 local gradient = Instance.new("UIGradient")
 gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)), -- Xám đậm
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 10)) -- Đen
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 10))
 })
 gradient.Rotation = 45
 gradient.Parent = mainFrame
@@ -59,16 +66,16 @@ scrollingFrame.Position = UDim2.new(0, 0, 0, 0)
 scrollingFrame.BackgroundTransparency = 1
 scrollingFrame.BorderSizePixel = 0
 scrollingFrame.ScrollBarThickness = 8
-scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(139, 0, 0) -- Đỏ máu
+scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(139, 0, 0)
 scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 400)
 scrollingFrame.ScrollingDirection = Enum.ScrollingDirection.Y
 scrollingFrame.Parent = mainFrame
 
--- Menu nhỏ cho câu cá
+-- Menu câu cá
 local fishingFrame = Instance.new("Frame")
 fishingFrame.Size = UDim2.new(0, 200, 0, 120)
 fishingFrame.Position = UDim2.new(0.5, -100, 0.5, -60)
-fishingFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20) -- Đen đậm u ám
+fishingFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 fishingFrame.BackgroundTransparency = 0.5
 fishingFrame.BorderSizePixel = 0
 fishingFrame.Visible = false
@@ -80,8 +87,8 @@ fishingCorner.Parent = fishingFrame
 
 local fishingGradient = Instance.new("UIGradient")
 fishingGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)), -- Xám đậm
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 10)) -- Đen
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 10))
 })
 fishingGradient.Rotation = 45
 fishingGradient.Parent = fishingFrame
@@ -91,8 +98,8 @@ local function createTextBox(name, position, placeholder)
     local textBox = Instance.new("TextBox")
     textBox.Size = UDim2.new(0, 120, 0, 40)
     textBox.Position = position
-    textBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- Xám đậm
-    textBox.TextColor3 = Color3.fromRGB(139, 0, 0) -- Đỏ máu
+    textBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    textBox.TextColor3 = Color3.fromRGB(139, 0, 0)
     textBox.PlaceholderText = placeholder
     textBox.Text = ""
     textBox.TextScaled = true
@@ -107,13 +114,13 @@ local function createTextBox(name, position, placeholder)
     return textBox
 end
 
--- Hàm tạo Button với hover
+-- Hàm tạo Button
 local function createButton(name, position, text, parent)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(0, 120, 0, 40)
     button.Position = position
-    button.BackgroundColor3 = Color3.fromRGB(139, 0, 0) -- Đỏ máu
-    button.TextColor3 = Color3.fromRGB(255, 255, 255) -- Trắng cho tương phản
+    button.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
     button.Text = text
     button.TextScaled = true
     button.Font = Enum.Font.SourceSansBold
@@ -125,22 +132,22 @@ local function createButton(name, position, text, parent)
     btnCorner.Parent = button
     
     button.MouseEnter:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(178, 34, 34)}):Play() -- Đỏ sẫm khi hover
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(178, 34, 34)}):Play()
     end)
     button.MouseLeave:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(139, 0, 0)}):Play() -- Đỏ máu khi rời
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(139, 0, 0)}):Play()
     end)
     
     return button
 end
 
--- Tạo giao diện: 3 chức năng mỗi hàng, xuống dòng
+-- Tạo giao diện
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(0, 380, 0, 40)
 titleLabel.Position = UDim2.new(0, 10, 0, 10)
 titleLabel.BackgroundTransparency = 1
-titleLabel.TextColor3 = Color3.fromRGB(139, 0, 0) -- Đỏ máu
-titleLabel.Text = "🌲 Kirada Demo Menu 🌲"
+titleLabel.TextColor3 = Color3.fromRGB(139, 0, 0)
+titleLabel.Text = "🎃 Kirada Halloween (beta 1.0) 🎃"
 titleLabel.TextScaled = true
 titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.Parent = scrollingFrame
@@ -157,7 +164,7 @@ local teleportInput = createTextBox("TeleportInput", UDim2.new(0, 270, 0, 110), 
 
 -- Hàng 3
 local noclipToggle = createButton("NoclipToggle", UDim2.new(0, 10, 0, 160), "Xuyên Tường: TẮT", scrollingFrame)
-local antiAfkToggle = createButton("AntiAfkToggle", UDim2.new(0, 140, 0, 160), "Anti-AFK: TẮT", scrollingFrame) -- Nút Anti-AFK mới
+local antiAfkToggle = createButton("AntiAfkToggle", UDim2.new(0, 140, 0, 160), "Anti-AFK: TẮT", scrollingFrame)
 local fishingToggle = createButton("FishingToggle", UDim2.new(0, 270, 0, 160), "Câu Cá: TẮT", scrollingFrame)
 
 -- Hàng 4
@@ -174,20 +181,19 @@ local isFishing = false
 local isBypassFishing = false
 local isAutoFishing = false
 local isFlying = false
-local isAntiAfk = false -- Biến trạng thái cho Anti-AFK
-local customWalkSpeed = 16 -- Giá trị mặc định
-local customJumpPower = 50 -- Giá trị mặc định
+local isAntiAfk = false
+local customWalkSpeed = 16
+local customJumpPower = 50
 local noclipConnection = nil
 local fishingConnection = nil
 local waterWalkConnection = nil
 local waterPlatform = nil
-local antiAfkConnection = nil -- Connection cho Anti-AFK
-local runAnimation = nil -- Animation chạy
+local antiAfkConnection = nil
 
 -- Hàm thông báo
 local function notify(message)
     game.StarterGui:SetCore("SendNotification", {
-        Title = "Kirada Demo",
+        Title = "Kirada Halloween",
         Text = message,
         Duration = 3
     })
@@ -198,8 +204,10 @@ toggleButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = not mainFrame.Visible
     if mainFrame.Visible then
         TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0.5, -200, 0.5, -150)}):Play()
+        halloweenSound:Play() -- Phát âm thanh Halloween
     else
         TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0.5, -200, 1, 0)}):Play()
+        halloweenSound:Stop() -- Dừng âm thanh Halloween
     end
 end)
 
@@ -258,21 +266,21 @@ teleportButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Xử lý xuyên tường (fix bằng cách thêm xử lý va chạm với địa hình và các phần khác)
+-- Xử lý xuyên tường (đã sửa để WalkSpeed hoạt động)
 noclipToggle.MouseButton1Click:Connect(function()
     isNoClip = not isNoClip
     noclipToggle.Text = "Xuyên Tường: " .. (isNoClip and "BẬT" or "TẮT")
     
     if isNoClip then
-        noclipConnection = RunService.Stepped:Connect(function(_, step)
-            if character then
+        noclipConnection = RunService.Stepped:Connect(function()
+            if character and humanoid then
                 for _, part in pairs(character:GetDescendants()) do
                     if part:IsA("BasePart") then
                         part.CanCollide = false
                     end
                 end
-                -- Di chuyển nhân vật để tránh kẹt
-                rootPart.Velocity = Vector3.new(0, 0, 0)
+                -- Đảm bảo trạng thái Humanoid là Running để WalkSpeed hoạt động
+                humanoid:ChangeState(Enum.HumanoidStateType.Running)
             end
         end)
         notify("Đã bật Xuyên Tường")
@@ -298,14 +306,13 @@ antiAfkToggle.MouseButton1Click:Connect(function()
     antiAfkToggle.Text = "Anti-AFK: " .. (isAntiAfk and "BẬT" or "TẮT")
     
     if isAntiAfk then
-        antiAfkConnection = game:GetService("RunService").Heartbeat:Connect(function()
-            -- Mỗi 5 phút (300 giây), mô phỏng nhấn chuột trái
+        antiAfkConnection = RunService.Heartbeat:Connect(function()
             if tick() % 300 < 0.1 then
                 game:GetService("VirtualUser"):ClickButton1(Vector2.new(0, 0))
-                notify("Anti-AFK: Đã mô phỏng nhấn chuột để tránh kick!")
+                notify("Anti-AFK: Đã mô phỏng nhấn chuột!")
             end
         end)
-        notify("Đã bật Anti-AFK (nhấn chuột mỗi 5 phút)")
+        notify("Đã bật Anti-AFK")
     else
         if antiAfkConnection then
             antiAfkConnection:Disconnect()
@@ -324,8 +331,8 @@ waterWalkToggle.MouseButton1Click:Connect(function()
     if isWaterWalk then
         waterPlatform = Instance.new("Part")
         waterPlatform.Size = Vector3.new(10, 0.5, 10)
-        waterPlatform.Transparency = 0.8 -- Tăng độ trong suốt cho u ám
-        waterPlatform.BrickColor = BrickColor.new("Really black") -- Đen u ám
+        waterPlatform.Transparency = 0.8
+        waterPlatform.BrickColor = BrickColor.new("Really black")
         waterPlatform.CanCollide = true
         waterPlatform.Anchored = true
         waterPlatform.Parent = workspace
@@ -482,12 +489,10 @@ flyToggle.MouseButton1Click:Connect(function()
     flyToggle.Text = "Bay: " .. (isFlying and "BẬT" or "TẮT")
     
     if isFlying then
-        -- Đếm ngược 3 giây
         for i = 3, 1, -1 do
             notify("Bật Bay trong: " .. i .. " giây")
             wait(1)
         end
-        -- Tải và chạy script fly
         local success, result = pcall(function()
             return loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradafly/main/Kiradafly.lua"))()
         end)
@@ -500,7 +505,6 @@ flyToggle.MouseButton1Click:Connect(function()
         end
     else
         notify("Đã tắt chức năng Bay")
-        -- Lưu ý: Không có logic tắt bay vì script bên thứ ba có thể tự quản lý
     end
 end)
 
@@ -517,36 +521,9 @@ player.CharacterAdded:Connect(function(newCharacter)
             end
         end
     end
-    
-    -- Tải lại animation chạy khi nhân vật reset
-    local animator = humanoid:WaitForChild("Animator")
-    local runAnim = Instance.new("Animation")
-    runAnim.AnimationId = "rbxassetid://616163682" -- ID animation chạy (thay bằng ID animation bạn muốn)
-    runAnimation = animator:LoadAnimation(runAnim)
 end)
 
--- Thêm animation chạy cho player
-local runAnimConnection = RunService.Heartbeat:Connect(function()
-    if character and humanoid and runAnimation then
-        if humanoid.MoveDirection.Magnitude > 0 then
-            if not runAnimation.IsPlaying then
-                runAnimation:Play()
-            end
-        else
-            if runAnimation.IsPlaying then
-                runAnimation:Stop()
-            end
-        end
-    end
-end)
-
--- Tải animation chạy ban đầu
-local animator = humanoid:WaitForChild("Animator")
-local runAnim = Instance.new("Animation")
-runAnim.AnimationId = "rbxassetid://616163682" -- ID animation chạy (thay bằng ID animation bạn muốn, ví dụ animation chạy nhanh)
-runAnimation = animator:LoadAnimation(runAnim)
-
--- Thêm chức năng di chuyển menu bằng cảm ứng
+-- Xử lý di chuyển menu bằng cảm ứng
 local dragging = false
 local dragInput = nil
 local dragStart = nil
@@ -573,4 +550,4 @@ toggleButton.InputChanged:Connect(function(input)
 end)
 
 -- Thông báo khởi động
-notify("Kirada Demo đã tải! Chạm nút để mở menu.")
+notify("Kirada Halloween (beta 1.0) đã tải!
