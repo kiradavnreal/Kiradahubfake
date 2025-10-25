@@ -11,23 +11,28 @@ local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid", 5)
 local rootPart = character:WaitForChild("HumanoidRootPart", 5)
 
+-- Kiểm tra nếu không tìm thấy humanoid hoặc rootPart
 if not humanoid or not rootPart then
     warn("Không tìm thấy Humanoid hoặc HumanoidRootPart!")
     return
 end
+
+-- Tạo GUI Menu
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "KiradaHalloween"
 ScreenGui.Parent = player.PlayerGui
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+-- Tạo âm thanh Halloween
 local halloweenSound = Instance.new("Sound")
-halloweenSound.SoundId = "rbxassetid://1839246711"
+halloweenSound.SoundId = "rbxassetid://1839246711" -- Âm thanh Halloween
 halloweenSound.Looped = true
 halloweenSound.Volume = 0.5
-halloweenSound.Parent = workspace
-halloweenSound:Play()
+halloweenSound.Parent = workspace -- Đặt trong workspace để đảm bảo phát âm thanh
+halloweenSound:Play() -- Phát ngay khi tải (tùy chọn, có thể bỏ)
 
+-- Nút Toggle Menu
 local toggleButton = Instance.new("ImageButton")
 toggleButton.Size = UDim2.new(0, 60, 0, 60)
 toggleButton.Position = UDim2.new(0, 10, 0, 10)
@@ -40,6 +45,7 @@ local toggleCorner = Instance.new("UICorner")
 toggleCorner.CornerRadius = UDim.new(0, 15)
 toggleCorner.Parent = toggleButton
 
+-- Frame chính
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 400, 0, 300)
 mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
@@ -68,9 +74,11 @@ scrollingFrame.BackgroundTransparency = 1
 scrollingFrame.BorderSizePixel = 0
 scrollingFrame.ScrollBarThickness = 8
 scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(139, 0, 0)
-scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 550)
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 400)
 scrollingFrame.ScrollingDirection = Enum.ScrollingDirection.Y
 scrollingFrame.Parent = mainFrame
+
+-- Menu câu cá
 local fishingFrame = Instance.new("Frame")
 fishingFrame.Size = UDim2.new(0, 200, 0, 120)
 fishingFrame.Position = UDim2.new(0.5, -100, 0.5, -60)
@@ -91,38 +99,90 @@ fishingGradient.Color = ColorSequence.new({
 })
 fishingGradient.Rotation = 45
 fishingGradient.Parent = fishingFrame
+
+-- Hàm tạo TextBox
+local function createTextBox(name, position, placeholder)
+    local textBox = Instance.new("TextBox")
+    textBox.Size = UDim2.new(0, 120, 0, 40)
+    textBox.Position = position
+    textBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    textBox.TextColor3 = Color3.fromRGB(139, 0, 0)
+    textBox.PlaceholderText = placeholder
+    textBox.Text = ""
+    textBox.TextScaled = true
+    textBox.Font = Enum.Font.SourceSans
+    textBox.Parent = scrollingFrame
+    textBox.Name = name
+    
+    local tbCorner = Instance.new("UICorner")
+    tbCorner.CornerRadius = UDim.new(0, 8)
+    tbCorner.Parent = textBox
+    
+    return textBox
+end
+
+-- Hàm tạo Button
+local function createButton(name, position, text, parent)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 120, 0, 40)
+    button.Position = position
+    button.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Text = text
+    button.TextScaled = true
+    button.Font = Enum.Font.SourceSansBold
+    button.Parent = parent
+    button.Name = name
+    
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 8)
+    btnCorner.Parent = button
+    
+    button.MouseEnter:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(178, 34, 34)}):Play()
+    end)
+    button.MouseLeave:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(139, 0, 0)}):Play()
+    end)
+    
+    return button
+end
+
+-- Tạo giao diện
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(0, 380, 0, 40)
 titleLabel.Position = UDim2.new(0, 10, 0, 10)
 titleLabel.BackgroundTransparency = 1
 titleLabel.TextColor3 = Color3.fromRGB(139, 0, 0)
-titleLabel.Text = "🎃 Kirada Halloween (beta 1.3) 🎃"
+titleLabel.Text = "🎃 Kirada Halloween (beta 1.1) 🎃"
 titleLabel.TextScaled = true
 titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.Parent = scrollingFrame
 
+-- Hàng 1
 local speedButton = createButton("SpeedButton", UDim2.new(0, 10, 0, 60), "Đặt Tốc Độ", scrollingFrame)
 local speedInput = createTextBox("SpeedInput", UDim2.new(0, 140, 0, 60), "Tốc độ (VD: 100)")
 local jumpButton = createButton("JumpButton", UDim2.new(0, 270, 0, 60), "Đặt Nhảy", scrollingFrame)
 
+-- Hàng 2
 local jumpInput = createTextBox("JumpInput", UDim2.new(0, 10, 0, 110), "Nhảy (VD: 50)")
 local teleportButton = createButton("TeleportButton", UDim2.new(0, 140, 0, 110), "Dịch Chuyển", scrollingFrame)
 local teleportInput = createTextBox("TeleportInput", UDim2.new(0, 270, 0, 110), "Tên người chơi")
 
+-- Hàng 3
 local noclipToggle = createButton("NoclipToggle", UDim2.new(0, 10, 0, 160), "Xuyên Tường: TẮT", scrollingFrame)
 local antiAfkToggle = createButton("AntiAfkToggle", UDim2.new(0, 140, 0, 160), "Anti-AFK: TẮT", scrollingFrame)
 local fishingToggle = createButton("FishingToggle", UDim2.new(0, 270, 0, 160), "Câu Cá: TẮT", scrollingFrame)
 
+-- Hàng 4
 local waterWalkToggle = createButton("WaterWalkToggle", UDim2.new(0, 10, 0, 210), "Đi Trên Nước: TẮT", scrollingFrame)
 local flyToggle = createButton("FlyToggle", UDim2.new(0, 140, 0, 210), "Bay: TẮT", scrollingFrame)
-local infiniteJumpToggle = createButton("InfiniteJumpToggle", UDim2.new(0, 270, 0, 210), "Nhảy Vô Hạn: TẮT", scrollingFrame)
 
-local killAuraToggle = createButton("KillAuraToggle", UDim2.new(0, 10, 0, 260), "Kill Aura: TẮT", scrollingFrame)
-local killAuraRangeInput = createTextBox("KillAuraRangeInput", UDim2.new(0, 140, 0, 260), "Tầm xa (VD: 20)")
-local nearestChestButton = createButton("NearestChestButton", UDim2.new(0, 270, 0, 260), "Dịch Đến Rương Gần", scrollingFrame)
-
+-- Nút trong menu câu cá
 local bypassFishButton = createButton("BypassFishButton", UDim2.new(0, 10, 0, 20), "Bypass Cá", fishingFrame)
 local autoFishButton = createButton("AutoFishButton", UDim2.new(0, 10, 0, 70), "Câu Cá BTh", fishingFrame)
+
+-- Biến trạng thái
 local isNoClip = false
 local isFishing = false
 local isBypassFishing = false
@@ -130,18 +190,23 @@ local isAutoFishing = false
 local isFlying = false
 local isAntiAfk = false
 local isWaterWalk = false
-local isInfiniteJump = false
-local isKillAura = false
 local customWalkSpeed = 16
 local customJumpPower = 50
-local killAuraRange = 20
 local noclipConnection = nil
 local fishingConnection = nil
 local waterWalkConnection = nil
 local waterPlatform = nil
 local antiAfkConnection = nil
-local infiniteJumpConnection = nil
-local killAuraConnection = nil
+
+-- Hàm thông báo
+local function notify(message)
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Kirada Halloween",
+        Text = message,
+        Duration = 3
+    })
+end
+-- Toggle Menu
 toggleButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = not mainFrame.Visible
     if mainFrame.Visible then
@@ -158,84 +223,70 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         toggleButton.MouseButton1Click:Fire()
     end
 end)
+
+-- Xử lý tốc độ
 speedButton.MouseButton1Click:Connect(function()
-    local success, result = pcall(function()
-        local speed = tonumber(speedInput.Text)
-        if speed then
-            customWalkSpeed = math.clamp(speed, 0, 500)
-            if humanoid then
-                humanoid.WalkSpeed = customWalkSpeed
-                task.wait(math.random(0.1, 0.3))
-            end
-            notify("Đã đặt tốc độ: " .. customWalkSpeed)
-        else
-            notify("Vui lòng nhập số hợp lệ cho tốc độ!")
+    local speed = tonumber(speedInput.Text)
+    if speed then
+        customWalkSpeed = math.clamp(speed, 0, 1000)
+        if humanoid then
+            humanoid.WalkSpeed = customWalkSpeed
         end
-    end)
-    if not success then
-        notify("Lỗi khi đặt tốc độ: " .. tostring(result))
+        notify("Đã đặt tốc độ: " .. customWalkSpeed)
+    else
+        notify("Vui lòng nhập số hợp lệ cho tốc độ!")
     end
 end)
+
+-- Xử lý nhảy
 jumpButton.MouseButton1Click:Connect(function()
-    local success, result = pcall(function()
-        local jumpPower = tonumber(jumpInput.Text)
-        if jumpPower then
-            customJumpPower = math.clamp(jumpPower, 0, 250)
-            if humanoid then
-                humanoid.UseJumpPower = true
-                humanoid.JumpPower = customJumpPower
-                task.wait(math.random(0.1, 0.3))
-            end
-            notify("Đã đặt sức nhảy: " .. customJumpPower)
-        else
-            notify("Vui lòng nhập số hợp lệ cho sức nhảy!")
+    local jumpPower = tonumber(jumpInput.Text)
+    if jumpPower then
+        customJumpPower = math.clamp(jumpPower, 0, 500)
+        if humanoid then
+            humanoid.UseJumpPower = true
+            humanoid.JumpPower = customJumpPower
         end
-    end)
-    if not success then
-        notify("Lỗi khi đặt sức nhảy: " .. tostring(result))
+        notify("Đã đặt sức nhảy: " .. customJumpPower)
+    else
+        notify("Vui lòng nhập số hợp lệ cho sức nhảy!")
     end
 end)
+
+-- Loop để set WalkSpeed và JumpPower liên tục
 local speedJumpConnection
 speedJumpConnection = RunService.Heartbeat:Connect(function()
     if character and humanoid then
-        pcall(function()
-            humanoid.WalkSpeed = customWalkSpeed
-            humanoid.JumpPower = customJumpPower
-        end)
+        humanoid.WalkSpeed = customWalkSpeed
+        humanoid.JumpPower = customJumpPower
     else
+        -- Ngắt kết nối nếu nhân vật không tồn tại
         if speedJumpConnection then
             speedJumpConnection:Disconnect()
             speedJumpConnection = nil
         end
     end
 end)
+
+-- Xử lý dịch chuyển
 teleportButton.MouseButton1Click:Connect(function()
-    local success, result = pcall(function()
-        local targetName = teleportInput.Text
-        local targetPlayer = nil
-        for _, p in pairs(Players:GetPlayers()) do
-            if p.Name:lower():find(targetName:lower()) then
-                targetPlayer = p
-                break
-            end
+    local targetName = teleportInput.Text
+    local targetPlayer = nil
+    for _, p in pairs(Players:GetPlayers()) do
+        if p.Name:lower():find(targetName:lower()) then
+            targetPlayer = p
+            break
         end
-        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local distance = (rootPart.Position - targetPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if distance > 5000 then
-                notify("Khoảng cách dịch chuyển quá xa!")
-                return
-            end
-            rootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 0, 2)
-            task.wait(math.random(0.2, 0.5))
-            notify("Đã dịch chuyển đến: " .. targetPlayer.Name)
-        else
-            notify("Không tìm thấy người chơi hoặc tên không hợp lệ!")
-        end
-    end)
-    if not success then
-        notify("Lỗi khi dịch chuyển: " .. tostring(result))
+    end
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        rootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 0, 2)
+        notify("Đã dịch chuyển đến: " .. targetPlayer.Name)
+    else
+        notify("Không tìm thấy người chơi hoặc tên không hợp lệ!")
     end
 end)
+
+-- Xử lý xuyên tường
 noclipToggle.MouseButton1Click:Connect(function()
     isNoClip = not isNoClip
     noclipToggle.Text = "Xuyên Tường: " .. (isNoClip and "BẬT" or "TẮT")
@@ -243,14 +294,12 @@ noclipToggle.MouseButton1Click:Connect(function()
     if isNoClip then
         noclipConnection = RunService.Stepped:Connect(function()
             if character and humanoid and rootPart then
-                pcall(function()
-                    for _, part in pairs(character:GetDescendants()) do
-                        if part:IsA("BasePart") then
-                            part.CanCollide = false
-                        end
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
                     end
-                    humanoid:ChangeState(Enum.HumanoidStateType.Running)
-                end)
+                end
+                humanoid:ChangeState(Enum.HumanoidStateType.Running)
             end
         end)
         notify("Đã bật Xuyên Tường")
@@ -260,17 +309,17 @@ noclipToggle.MouseButton1Click:Connect(function()
             noclipConnection = nil
         end
         if character then
-            pcall(function()
-                for _, part in pairs(character:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = true
-                    end
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
                 end
-            end)
+            end
         end
         notify("Đã tắt Xuyên Tường")
     end
 end)
+
+-- Xử lý Anti-AFK
 antiAfkToggle.MouseButton1Click:Connect(function()
     isAntiAfk = not isAntiAfk
     antiAfkToggle.Text = "Anti-AFK: " .. (isAntiAfk and "BẬT" or "TẮT")
@@ -279,8 +328,7 @@ antiAfkToggle.MouseButton1Click:Connect(function()
         antiAfkConnection = RunService.Heartbeat:Connect(function()
             if tick() % 300 < 0.1 then
                 pcall(function()
-                    game:GetService("VirtualUser"):ClickButton1(Vector2.new(math.random(0, 100), math.random(0, 100)))
-                    task.wait(math.random(0.5, 1.5))
+                    game:GetService("VirtualUser"):ClickButton1(Vector2.new(0, 0))
                     notify("Anti-AFK: Đã mô phỏng nhấn chuột!")
                 end)
             end
@@ -294,6 +342,7 @@ antiAfkToggle.MouseButton1Click:Connect(function()
         notify("Đã tắt Anti-AFK")
     end
 end)
+-- Xử lý Đi Trên Nước
 waterWalkToggle.MouseButton1Click:Connect(function()
     isWaterWalk = not isWaterWalk
     waterWalkToggle.Text = "Đi Trên Nước: " .. (isWaterWalk and "BẬT" or "TẮT")
@@ -306,7 +355,6 @@ waterWalkToggle.MouseButton1Click:Connect(function()
         waterPlatform.CanCollide = true
         waterPlatform.Anchored = true
         waterPlatform.Parent = workspace
-        waterPlatform.Name = generateRandomName(10)
         
         waterWalkConnection = RunService.Stepped:Connect(function()
             if character and rootPart and humanoid then
@@ -349,6 +397,8 @@ waterWalkToggle.MouseButton1Click:Connect(function()
         notify("Đã tắt Đi Trên Nước")
     end
 end)
+
+-- Xử lý Câu Cá
 fishingToggle.MouseButton1Click:Connect(function()
     isFishing = not isFishing
     fishingToggle.Text = "Câu Cá: " .. (isFishing and "BẬT" or "TẮT")
@@ -370,6 +420,7 @@ fishingToggle.MouseButton1Click:Connect(function()
     end
 end)
 
+-- Bypass Cá
 bypassFishButton.MouseButton1Click:Connect(function()
     if not isFishing then return end
     isBypassFishing = not isBypassFishing
@@ -388,13 +439,11 @@ bypassFishButton.MouseButton1Click:Connect(function()
                     for _, v in pairs(ReplicatedStorage:GetDescendants()) do
                         if v:IsA("RemoteEvent") and v.Name:lower():find("fish") then
                             v:FireServer("Caught")
-                            task.wait(math.random(0.2, 0.6))
                         end
                     end
                     for _, v in pairs(workspace:GetDescendants()) do
                         if v:IsA("RemoteEvent") and v.Name:lower():find("fish") then
                             v:FireServer("Caught")
-                            task.wait(math.random(0.2, 0.6))
                         end
                     end
                 end)
@@ -410,6 +459,7 @@ bypassFishButton.MouseButton1Click:Connect(function()
     end
 end)
 
+-- Câu Cá Bình Thường
 autoFishButton.MouseButton1Click:Connect(function()
     if not isFishing then return end
     isAutoFishing = not isAutoFishing
@@ -428,7 +478,7 @@ autoFishButton.MouseButton1Click:Connect(function()
                     for _, v in pairs(ReplicatedStorage:GetDescendants()) do
                         if v:IsA("RemoteEvent") and v.Name:lower():find("cast") then
                             v:FireServer()
-                            task.wait(math.random(1.8, 2.8))
+                            task.wait(2)
                             if v.Name:lower():find("reel") then
                                 v:FireServer()
                             end
@@ -437,7 +487,7 @@ autoFishButton.MouseButton1Click:Connect(function()
                     for _, v in pairs(workspace:GetDescendants()) do
                         if v:IsA("RemoteEvent") and v.Name:lower():find("cast") then
                             v:FireServer()
-                            task.wait(math.random(1.8, 2.8))
+                            task.wait(2)
                             if v.Name:lower():find("reel") then
                                 v:FireServer()
                             end
@@ -455,28 +505,8 @@ autoFishButton.MouseButton1Click:Connect(function()
         notify("Đã tắt Câu Cá Bình Thường")
     end
 end)
-infiniteJumpToggle.MouseButton1Click:Connect(function()
-    isInfiniteJump = not isInfiniteJump
-    infiniteJumpToggle.Text = "Nhảy Vô Hạn: " .. (isInfiniteJump and "BẬT" or "TẮT")
-    
-    if isInfiniteJump then
-        infiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
-            if character and humanoid then
-                pcall(function()
-                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                    task.wait(math.random(0.1, 0.2))
-                end)
-            end
-        end)
-        notify("Đã bật Nhảy Vô Hạn")
-    else
-        if infiniteJumpConnection then
-            infiniteJumpConnection:Disconnect()
-            infiniteJumpConnection = nil
-        end
-        notify("Đã tắt Nhảy Vô Hạn")
-    end
-end)
+
+-- Xử lý Bay
 flyToggle.MouseButton1Click:Connect(function()
     isFlying = not isFlying
     flyToggle.Text = "Bay: " .. (isFlying and "BẬT" or "TẮT")
@@ -500,93 +530,8 @@ flyToggle.MouseButton1Click:Connect(function()
         notify("Đã tắt chức năng Bay")
     end
 end)
-killAuraToggle.MouseButton1Click:Connect(function()
-    isKillAura = not isKillAura
-    killAuraToggle.Text = "Kill Aura: " .. (isKillAura and "BẬT" or "TẮT")
-    
-    local rangeText = killAuraRangeInput.Text
-    local newRange = tonumber(rangeText)
-    if newRange then
-        killAuraRange = math.clamp(newRange, 1, 100)
-        notify("Tầm xa Kill Aura đã đặt: " .. killAuraRange)
-    else
-        killAuraRange = 20
-        notify("Sử dụng tầm xa mặc định: 20")
-    end
-    
-    if isKillAura then
-        killAuraConnection = RunService.Heartbeat:Connect(function()
-            if character and rootPart and humanoid then
-                pcall(function()
-                    for _, obj in pairs(workspace:GetDescendants()) do
-                        if obj:IsA("Humanoid") and obj ~= humanoid and obj.Parent and not Players:GetPlayerFromCharacter(obj.Parent) then
-                            local enemyRoot = obj.Parent:FindFirstChild("HumanoidRootPart") or obj.Parent:FindFirstChildWhichIsA("BasePart")
-                            if enemyRoot then
-                                local distance = (rootPart.Position - enemyRoot.Position).Magnitude
-                                if distance <= killAuraRange then
-                                    obj.Health = 0
-                                    task.wait(math.random(0.05, 0.15))
-                                end
-                            end
-                        end
-                    end
-                end)
-            end
-        end)
-        notify("Đã bật Kill Aura với tầm xa: " .. killAuraRange)
-    else
-        if killAuraConnection then
-            killAuraConnection:Disconnect()
-            killAuraConnection = nil
-        end
-        notify("Đã tắt Kill Aura")
-    end
-end)
-nearestChestButton.MouseButton1Click:Connect(function()
-    local success, result = pcall(function()
-        local chests = {}
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("Model") or obj:IsA("BasePart") then
-                if obj.Name:lower():find("chest") or obj.Name:lower():find("crate") or obj.Name:lower():find("box") then
-                    local chestPos = obj:FindFirstChildWhichIsA("BasePart") or obj
-                    if chestPos then
-                        table.insert(chests, chestPos)
-                    end
-                end
-            end
-        end
-        
-        if #chests == 0 then
-            notify("Không tìm thấy rương nào!")
-            return
-        end
-        
-        local nearestChest = nil
-        local minDistance = math.huge
-        for _, chest in pairs(chests) do
-            local distance = (rootPart.Position - chest.Position).Magnitude
-            if distance < minDistance then
-                minDistance = distance
-                nearestChest = chest
-            end
-        end
-        
-        if nearestChest then
-            if minDistance > 5000 then
-                notify("Khoảng cách đến rương quá xa!")
-                return
-            end
-            rootPart.CFrame = nearestChest.CFrame + Vector3.new(0, 3, 0)
-            task.wait(math.random(0.2, 0.5))
-            notify("Đã dịch chuyển đến rương gần nhất!")
-        else
-            notify("Không tìm thấy rương gần!")
-        end
-    end)
-    if not success then
-        notify("Lỗi khi dịch đến rương: " .. tostring(result))
-    end
-end)
+
+-- Xử lý nhân vật reset
 player.CharacterAdded:Connect(function(newCharacter)
     character = newCharacter
     humanoid = character:WaitForChild("Humanoid", 5)
@@ -597,56 +542,16 @@ player.CharacterAdded:Connect(function(newCharacter)
         return
     end
     
-    if isNoClip then
-        pcall(function()
-            for _, part in pairs(character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
+     if isNoClip then
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
             end
-        end)
-    end
-    
-    if isInfiniteJump then
-        if infiniteJumpConnection then
-            infiniteJumpConnection:Disconnect()
-            infiniteJumpConnection = nil
         end
-        infiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
-            if character and humanoid then
-                pcall(function()
-                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                    task.wait(math.random(0.1, 0.2))
-                end)
-            end
-        end)
-    end
-    
-    if isKillAura then
-        if killAuraConnection then
-            killAuraConnection:Disconnect()
-            killAuraConnection = nil
-        end
-        killAuraConnection = RunService.Heartbeat:Connect(function()
-            if character and rootPart and humanoid then
-                pcall(function()
-                    for _, obj in pairs(workspace:GetDescendants()) do
-                        if obj:IsA("Humanoid") and obj ~= humanoid and obj.Parent and not Players:GetPlayerFromCharacter(obj.Parent) then
-                            local enemyRoot = obj.Parent:FindFirstChild("HumanoidRootPart") or obj.Parent:FindFirstChildWhichIsA("BasePart")
-                            if enemyRoot then
-                                local distance = (rootPart.Position - enemyRoot.Position).Magnitude
-                                if distance <= killAuraRange then
-                                    obj.Health = 0
-                                    task.wait(math.random(0.05, 0.15))
-                                end
-                            end
-                        end
-                    end
-                end)
-            end
-        end)
     end
 end)
+
+-- Xử lý di chuyển menu bằng cảm ứng
 local dragging = false
 local dragStart = nil
 local startPos = nil
