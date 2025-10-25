@@ -29,8 +29,8 @@ local halloweenSound = Instance.new("Sound")
 halloweenSound.SoundId = "rbxassetid://1839246711" -- Âm thanh Halloween
 halloweenSound.Looped = true
 halloweenSound.Volume = 0.5
-halloweenSound.Parent = workspace -- Đặt trong workspace để đảm bảo phát âm thanh
-halloweenSound:Play() -- Phát ngay khi tải (tùy chọn, có thể bỏ)
+halloweenSound.Parent = workspace
+halloweenSound:Play()
 
 -- Nút Toggle Menu
 local toggleButton = Instance.new("ImageButton")
@@ -74,7 +74,7 @@ scrollingFrame.BackgroundTransparency = 1
 scrollingFrame.BorderSizePixel = 0
 scrollingFrame.ScrollBarThickness = 8
 scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(139, 0, 0)
-scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 400)
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 450) -- Tăng CanvasSize để chứa nút mới
 scrollingFrame.ScrollingDirection = Enum.ScrollingDirection.Y
 scrollingFrame.Parent = mainFrame
 
@@ -154,7 +154,7 @@ titleLabel.Size = UDim2.new(0, 380, 0, 40)
 titleLabel.Position = UDim2.new(0, 10, 0, 10)
 titleLabel.BackgroundTransparency = 1
 titleLabel.TextColor3 = Color3.fromRGB(139, 0, 0)
-titleLabel.Text = "🎃 Kirada Halloween (beta 1.1) 🎃"
+titleLabel.Text = "🎃 Kirada Halloween (beta 1.2) 🎃" -- Cập nhật phiên bản
 titleLabel.TextScaled = true
 titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.Parent = scrollingFrame
@@ -177,6 +177,7 @@ local fishingToggle = createButton("FishingToggle", UDim2.new(0, 270, 0, 160), "
 -- Hàng 4
 local waterWalkToggle = createButton("WaterWalkToggle", UDim2.new(0, 10, 0, 210), "Đi Trên Nước: TẮT", scrollingFrame)
 local flyToggle = createButton("FlyToggle", UDim2.new(0, 140, 0, 210), "Bay: TẮT", scrollingFrame)
+local infiniteJumpToggle = createButton("InfiniteJumpToggle", UDim2.new(0, 270, 0, 210), "Nhảy Vô Hạn: TẮT", scrollingFrame) -- Nút mới
 
 -- Nút trong menu câu cá
 local bypassFishButton = createButton("BypassFishButton", UDim2.new(0, 10, 0, 20), "Bypass Cá", fishingFrame)
@@ -190,6 +191,7 @@ local isAutoFishing = false
 local isFlying = false
 local isAntiAfk = false
 local isWaterWalk = false
+local isInfiniteJump = false -- Biến mới cho nhảy vô hạn
 local customWalkSpeed = 16
 local customJumpPower = 50
 local noclipConnection = nil
@@ -197,14 +199,44 @@ local fishingConnection = nil
 local waterWalkConnection = nil
 local waterPlatform = nil
 local antiAfkConnection = nil
+local infiniteJumpConnection = nil -- Connection mới cho nhảy vô hạn
 
 -- Hàm thông báo
 local function notify(message)
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "Kirada Halloween",
-        Text = message,
-        Duration = 3
-    })
+    pcall(function()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "Kirada Halloween",
+            Text = message,
+            Duration = 3
+        })
+    end)
+end
+
+-- Hàm tạo tên ngẫu nhiên để tránh phát hiện anti-cheat
+local function generateRandomName(length)
+    local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    local name = ""
+    for _ = 1, length do
+        local randIndex = math.random(1, #chars)
+        name = name .. string.sub(chars, randIndex, randIndex)
+    end
+    return name
+end
+
+-- Hàm kiểm tra anti-cheat đơn giản
+local function checkAntiCheat()
+    if humanoid and rootPart then
+        -- Kiểm tra nếu tốc độ hoặc nhảy vượt quá giới hạn hợp lý
+        if humanoid.WalkSpeed > 1000 or humanoid.JumpPower > 500 then
+            return false, "Giá trị tốc độ hoặc nhảy quá cao, có thể bị phát hiện!"
+        end
+        -- Kiểm tra vị trí bất thường
+        if rootPart.Position.Y < -1000 or rootPart.Position.Magnitude > 100000 then
+            return false, "Vị trí nhân vật bất thường, có thể bị phát hiện!"
+        end
+        return true, "An toàn"
+    end
+    return false, "Không tìm thấy nhân vật!"
 end
 
 -- Toggle Menu
@@ -225,32 +257,55 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- Xử lý tốc độ
+-- Xử lý tốc độ (với anti-cheat bypass)
 speedButton.MouseButton1Click:Connect(function()
-    local speed = tonumber(speedInput.Text)
-    if speed then
-        customWalkSpeed = math.clamp(speed, 0, 1000)
-        if humanoid then
-            humanoid.WalkSpeed = customWalkSpeed
+    local success, result = pcall(function()
+        local speed = tonumber(speedInput.Text)
+        if speed then
+            local isSafe, message = checkAntiCheat()
+            if not isSafe then
+                notify(message)
+                return
+            end
+            customWalkSpeed = math.clamp(speed, 0, 1000)
+            if humanoid then
+                humanoid.WalkSpeed = customWalkSpeed
+                -- Thêm độ trễ nhỏ để tránh anti-cheat phát hiện thay đổi tức thời
+                task.wait(math.random(0.05, 0.15))
+            end
+            notify("Đã đặt tốc độ: " .. customWalkSpeed)
+        else
+            notify("Vui lòng nhập số hợp lệ cho tốc độ!")
         end
-        notify("Đã đặt tốc độ: " .. customWalkSpeed)
-    else
-        notify("Vui lòng nhập số hợp lệ cho tốc độ!")
+    end)
+    if not success then
+        notify("Lỗi khi đặt tốc độ: " .. tostring(result))
     end
 end)
 
--- Xử lý nhảy
+-- Xử lý nhảy (với anti-cheat bypass)
 jumpButton.MouseButton1Click:Connect(function()
-    local jumpPower = tonumber(jumpInput.Text)
-    if jumpPower then
-        customJumpPower = math.clamp(jumpPower, 0, 500)
-        if humanoid then
-            humanoid.UseJumpPower = true
-            humanoid.JumpPower = customJumpPower
+    local success, result = pcall(function()
+        local jumpPower = tonumber(jumpInput.Text)
+        if jumpPower then
+            local isSafe, message = checkAntiCheat()
+            if not isSafe then
+                notify(message)
+                return
+            end
+            customJumpPower = math.clamp(jumpPower, 0, 500)
+            if humanoid then
+                humanoid.UseJumpPower = true
+                humanoid.JumpPower = customJumpPower
+                task.wait(math.random(0.05, 0.15))
+            end
+            notify("Đã đặt sức nhảy: " .. customJumpPower)
+        else
+            notify("Vui lòng nhập số hợp lệ cho sức nhảy!")
         end
-        notify("Đã đặt sức nhảy: " .. customJumpPower)
-    else
-        notify("Vui lòng nhập số hợp lệ cho sức nhảy!")
+    end)
+    if not success then
+        notify("Lỗi khi đặt sức nhảy: " .. tostring(result))
     end
 end)
 
@@ -258,10 +313,14 @@ end)
 local speedJumpConnection
 speedJumpConnection = RunService.Heartbeat:Connect(function()
     if character and humanoid then
-        humanoid.WalkSpeed = customWalkSpeed
-        humanoid.JumpPower = customJumpPower
+        local isSafe, _ = checkAntiCheat()
+        if isSafe then
+            pcall(function()
+                humanoid.WalkSpeed = customWalkSpeed
+                humanoid.JumpPower = customJumpPower
+            end)
+        end
     else
-        -- Ngắt kết nối nếu nhân vật không tồn tại
         if speedJumpConnection then
             speedJumpConnection:Disconnect()
             speedJumpConnection = nil
@@ -269,21 +328,38 @@ speedJumpConnection = RunService.Heartbeat:Connect(function()
     end
 end)
 
--- Xử lý dịch chuyển
+-- Xử lý dịch chuyển (với anti-cheat bypass)
 teleportButton.MouseButton1Click:Connect(function()
-    local targetName = teleportInput.Text
-    local targetPlayer = nil
-    for _, p in pairs(Players:GetPlayers()) do
-        if p.Name:lower():find(targetName:lower()) then
-            targetPlayer = p
-            break
+    local success, result = pcall(function()
+        local targetName = teleportInput.Text
+        local targetPlayer = nil
+        for _, p in pairs(Players:GetPlayers()) do
+            if p.Name:lower():find(targetName:lower()) then
+                targetPlayer = p
+                break
+            end
         end
-    end
-    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        rootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 0, 2)
-        notify("Đã dịch chuyển đến: " .. targetPlayer.Name)
-    else
-        notify("Không tìm thấy người chơi hoặc tên không hợp lệ!")
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local isSafe, message = checkAntiCheat()
+            if not isSafe then
+                notify(message)
+                return
+            end
+            -- Thêm kiểm tra khoảng cách để tránh teleport quá xa
+            local distance = (rootPart.Position - targetPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if distance > 10000 then
+                notify("Khoảng cách dịch chuyển quá xa, có thể bị phát hiện!")
+                return
+            end
+            rootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 0, 2)
+            task.wait(math.random(0.1, 0.3)) -- Độ trễ nhỏ để tránh phát hiện
+            notify("Đã dịch chuyển đến: " .. targetPlayer.Name)
+        else
+            notify("Không tìm thấy người chơi hoặc tên không hợp lệ!")
+        end
+    end)
+    if not success then
+        notify("Lỗi khi dịch chuyển: " .. tostring(result))
     end
 end)
 
@@ -293,14 +369,23 @@ noclipToggle.MouseButton1Click:Connect(function()
     noclipToggle.Text = "Xuyên Tường: " .. (isNoClip and "BẬT" or "TẮT")
     
     if isNoClip then
+        local isSafe, message = checkAntiCheat()
+        if not isSafe then
+            notify(message)
+            isNoClip = false
+            noclipToggle.Text = "Xuyên Tường: TẮT"
+            return
+        end
         noclipConnection = RunService.Stepped:Connect(function()
             if character and humanoid and rootPart then
-                for _, part in pairs(character:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
+                pcall(function()
+                    for _, part in pairs(character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
                     end
-                end
-                humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                    humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                end)
             end
         end)
         notify("Đã bật Xuyên Tường")
@@ -310,11 +395,13 @@ noclipToggle.MouseButton1Click:Connect(function()
             noclipConnection = nil
         end
         if character then
-            for _, part in pairs(character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
+            pcall(function()
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = true
+                    end
                 end
-            end
+            end)
         end
         notify("Đã tắt Xuyên Tường")
     end
@@ -329,7 +416,8 @@ antiAfkToggle.MouseButton1Click:Connect(function()
         antiAfkConnection = RunService.Heartbeat:Connect(function()
             if tick() % 300 < 0.1 then
                 pcall(function()
-                    game:GetService("VirtualUser"):ClickButton1(Vector2.new(0, 0))
+                    game:GetService("VirtualUser"):ClickButton1(Vector2.new(math.random(0, 100), math.random(0, 100)))
+                    task.wait(math.random(0.5, 1.5)) -- Độ trễ ngẫu nhiên để tránh phát hiện
                     notify("Anti-AFK: Đã mô phỏng nhấn chuột!")
                 end)
             end
@@ -343,6 +431,7 @@ antiAfkToggle.MouseButton1Click:Connect(function()
         notify("Đã tắt Anti-AFK")
     end
 end)
+
 -- Xử lý Đi Trên Nước
 waterWalkToggle.MouseButton1Click:Connect(function()
     isWaterWalk = not isWaterWalk
@@ -356,9 +445,15 @@ waterWalkToggle.MouseButton1Click:Connect(function()
         waterPlatform.CanCollide = true
         waterPlatform.Anchored = true
         waterPlatform.Parent = workspace
+        waterPlatform.Name = generateRandomName(10) -- Tên ngẫu nhiên để tránh phát hiện
         
         waterWalkConnection = RunService.Stepped:Connect(function()
             if character and rootPart and humanoid then
+                local isSafe, message = checkAntiCheat()
+                if not isSafe then
+                    notify(message)
+                    return
+                end
                 local rayParams = RaycastParams.new()
                 rayParams.FilterDescendantsInstances = {character, waterPlatform}
                 rayParams.FilterType = Enum.RaycastFilterType.Exclude
@@ -436,15 +531,22 @@ bypassFishButton.MouseButton1Click:Connect(function()
         end
         fishingConnection = RunService.Heartbeat:Connect(function()
             if character and humanoid then
+                local isSafe, message = checkAntiCheat()
+                if not isSafe then
+                    notify(message)
+                    return
+                end
                 pcall(function()
                     for _, v in pairs(ReplicatedStorage:GetDescendants()) do
                         if v:IsA("RemoteEvent") and v.Name:lower():find("fish") then
                             v:FireServer("Caught")
+                            task.wait(math.random(0.1, 0.5)) -- Độ trễ ngẫu nhiên
                         end
                     end
                     for _, v in pairs(workspace:GetDescendants()) do
                         if v:IsA("RemoteEvent") and v.Name:lower():find("fish") then
                             v:FireServer("Caught")
+                            task.wait(math.random(0.1, 0.5))
                         end
                     end
                 end)
@@ -475,11 +577,16 @@ autoFishButton.MouseButton1Click:Connect(function()
         end
         fishingConnection = RunService.Heartbeat:Connect(function()
             if character and humanoid then
+                local isSafe, message = checkAntiCheat()
+                if not isSafe then
+                    notify(message)
+                    return
+                end
                 pcall(function()
                     for _, v in pairs(ReplicatedStorage:GetDescendants()) do
                         if v:IsA("RemoteEvent") and v.Name:lower():find("cast") then
                             v:FireServer()
-                            task.wait(2)
+                            task.wait(math.random(1.5, 2.5))
                             if v.Name:lower():find("reel") then
                                 v:FireServer()
                             end
@@ -488,7 +595,7 @@ autoFishButton.MouseButton1Click:Connect(function()
                     for _, v in pairs(workspace:GetDescendants()) do
                         if v:IsA("RemoteEvent") and v.Name:lower():find("cast") then
                             v:FireServer()
-                            task.wait(2)
+                            task.wait(math.random(1.5, 2.5))
                             if v.Name:lower():find("reel") then
                                 v:FireServer()
                             end
@@ -507,12 +614,50 @@ autoFishButton.MouseButton1Click:Connect(function()
     end
 end)
 
+-- Xử lý Nhảy Vô Hạn (Mới)
+infiniteJumpToggle.MouseButton1Click:Connect(function()
+    isInfiniteJump = not isInfiniteJump
+    infiniteJumpToggle.Text = "Nhảy Vô Hạn: " .. (isInfiniteJump and "BẬT" or "TẮT")
+    
+    if isInfiniteJump then
+        local isSafe, message = checkAntiCheat()
+        if not isSafe then
+            notify(message)
+            isInfiniteJump = false
+            infiniteJumpToggle.Text = "Nhảy Vô Hạn: TẮT"
+            return
+        end
+        infiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
+            if character and humanoid then
+                pcall(function()
+                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    task.wait(math.random(0.05, 0.15)) -- Độ trễ nhỏ để tránh phát hiện
+                end)
+            end
+        end)
+        notify("Đã bật Nhảy Vô Hạn")
+    else
+        if infiniteJumpConnection then
+            infiniteJumpConnection:Disconnect()
+            infiniteJumpConnection = nil
+        end
+        notify("Đã tắt Nhảy Vô Hạn")
+    end
+end)
+
 -- Xử lý Bay
 flyToggle.MouseButton1Click:Connect(function()
     isFlying = not isFlying
     flyToggle.Text = "Bay: " .. (isFlying and "BẬT" or "TẮT")
     
     if isFlying then
+        local isSafe, message = checkAntiCheat()
+        if not isSafe then
+            notify(message)
+            isFlying = false
+            flyToggle.Text = "Bay: TẮT"
+            return
+        end
         for i = 3, 1, -1 do
             notify("Bật Bay trong: " .. i .. " giây")
             task.wait(1)
@@ -543,12 +688,30 @@ player.CharacterAdded:Connect(function(newCharacter)
         return
     end
     
-     if isNoClip then
-        for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
+    if isNoClip then
+        pcall(function()
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
             end
+        end)
+    end
+    
+    -- Khôi phục nhảy vô hạn nếu đang bật
+    if isInfiniteJump then
+        if infiniteJumpConnection then
+            infiniteJumpConnection:Disconnect()
+            infiniteJumpConnection = nil
         end
+        infiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
+            if character and humanoid then
+                pcall(function()
+                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    task.wait(math.random(0.05, 0.15))
+                end)
+            end
+        end)
     end
 end)
 
