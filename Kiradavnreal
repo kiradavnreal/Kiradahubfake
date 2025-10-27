@@ -3,52 +3,47 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Terrain = workspace:WaitForChild("Terrain")
-local HttpService = game:GetService("HttpService")
+local Terrain = workspace.Terrain
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid", 5)
 local rootPart = character:WaitForChild("HumanoidRootPart", 5)
 
--- Kiểm tra nếu không tìm thấy humanoid hoặc rootPart
 if not humanoid or not rootPart then
     warn("Không tìm thấy Humanoid hoặc HumanoidRootPart!")
     return
 end
--- Tạo GUI Menu
+
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "KiradaHalloween"
 ScreenGui.Parent = player.PlayerGui
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Nút Toggle Menu
+local halloweenSound = Instance.new("Sound")
+halloweenSound.SoundId = "rbxassetid://1839246711"
+halloweenSound.Looped = false
+halloweenSound.Volume = 0.5
+halloweenSound.Parent = workspace
+halloweenSound:Play()
+
 local toggleButton = Instance.new("ImageButton")
 toggleButton.Size = UDim2.new(0, 60, 0, 60)
 toggleButton.Position = UDim2.new(0, 10, 0, 10)
 toggleButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
 toggleButton.Image = "rbxassetid://89326205091486"
 toggleButton.Parent = ScreenGui
-toggleButton.Name = "ToggleButton"
+Instance.new("UICorner", toggleButton).CornerRadius = UDim.new(0, 15)
 
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 15)
-toggleCorner.Parent = toggleButton
-
--- Frame chính
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 400, 0, 300)
 mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
 mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 mainFrame.BackgroundTransparency = 0.5
-mainFrame.BorderSizePixel = 0
 mainFrame.Visible = false
 mainFrame.Parent = ScreenGui
-
-local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 12)
-mainCorner.Parent = mainFrame
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
 
 local gradient = Instance.new("UIGradient")
 gradient.Color = ColorSequence.new({
@@ -60,44 +55,23 @@ gradient.Parent = mainFrame
 
 local scrollingFrame = Instance.new("ScrollingFrame")
 scrollingFrame.Size = UDim2.new(1, 0, 1, 0)
-scrollingFrame.Position = UDim2.new(0, 0, 0, 0)
 scrollingFrame.BackgroundTransparency = 1
-scrollingFrame.BorderSizePixel = 0
 scrollingFrame.ScrollBarThickness = 8
 scrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(139, 0, 0)
-scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 450)
-scrollingFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 500)
 scrollingFrame.Parent = mainFrame
 
--- Menu câu cá
 local fishingFrame = Instance.new("Frame")
 fishingFrame.Size = UDim2.new(0, 200, 0, 120)
 fishingFrame.Position = UDim2.new(0.5, -100, 0.5, -60)
 fishingFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 fishingFrame.BackgroundTransparency = 0.5
-fishingFrame.BorderSizePixel = 0
 fishingFrame.Visible = false
 fishingFrame.Parent = ScreenGui
+Instance.new("UICorner", fishingFrame).CornerRadius = UDim.new(0, 12)
+Instance.new("UIGradient", fishingFrame).Color = gradient.Color
+Instance.new("UIGradient", fishingFrame).Rotation = 45
 
-local fishingCorner = Instance.new("UICorner")
-fishingCorner.CornerRadius = UDim.new(0, 12)
-fishingCorner.Parent = fishingFrame
-
-local fishingGradient = Instance.new("UIGradient")
-fishingGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 10))
-})
-fishingGradient.Rotation = 45
-fishingGradient.Parent = fishingFrame
--- Tạo âm thanh Halloween (phát đúng 1 lần)
-local halloweenSound = Instance.new("Sound")
-halloweenSound.SoundId = "rbxassetid://1839246711" -- Âm thanh Halloween
-halloweenSound.Looped = false
-halloweenSound.Volume = 0.5
-halloweenSound.Parent = workspace
-halloweenSound:Play() -- Phát một lần khi script chạy
--- Hàm tạo TextBox
 local function createTextBox(name, position, placeholder)
     local textBox = Instance.new("TextBox")
     textBox.Size = UDim2.new(0, 120, 0, 40)
@@ -110,15 +84,10 @@ local function createTextBox(name, position, placeholder)
     textBox.Font = Enum.Font.SourceSans
     textBox.Parent = scrollingFrame
     textBox.Name = name
-    
-    local tbCorner = Instance.new("UICorner")
-    tbCorner.CornerRadius = UDim.new(0, 8)
-    tbCorner.Parent = textBox
-    
+    Instance.new("UICorner", textBox).CornerRadius = UDim.new(0, 8)
     return textBox
 end
 
--- Hàm tạo Button
 local function createButton(name, position, text, parent)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(0, 120, 0, 40)
@@ -130,10 +99,7 @@ local function createButton(name, position, text, parent)
     button.Font = Enum.Font.SourceSansBold
     button.Parent = parent
     button.Name = name
-    
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 8)
-    btnCorner.Parent = button
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
     
     button.MouseEnter:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(178, 34, 34)}):Play()
@@ -145,15 +111,6 @@ local function createButton(name, position, text, parent)
     return button
 end
 
--- Hàm thông báo
-local function notify(message)
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "Kirada Halloween",
-        Text = message,
-        Duration = 3
-    })
-end
--- Tạo giao diện
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(0, 380, 0, 40)
 titleLabel.Position = UDim2.new(0, 10, 0, 10)
@@ -164,29 +121,409 @@ titleLabel.TextScaled = true
 titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.Parent = scrollingFrame
 
--- Hàng 1
 local speedButton = createButton("SpeedButton", UDim2.new(0, 10, 0, 60), "Đặt Tốc Độ", scrollingFrame)
 local speedInput = createTextBox("SpeedInput", UDim2.new(0, 140, 0, 60), "Tốc độ (VD: 100)")
 local jumpButton = createButton("JumpButton", UDim2.new(0, 270, 0, 60), "Đặt Nhảy", scrollingFrame)
 
--- Hàng 2
 local jumpInput = createTextBox("JumpInput", UDim2.new(0, 10, 0, 110), "Nhảy (VD: 50)")
 local teleportButton = createButton("TeleportButton", UDim2.new(0, 140, 0, 110), "Dịch Chuyển", scrollingFrame)
 local teleportInput = createTextBox("TeleportInput", UDim2.new(0, 270, 0, 110), "Tên người chơi")
 
--- Hàng 3
 local noclipToggle = createButton("NoclipToggle", UDim2.new(0, 10, 0, 160), "Xuyên Tường: TẮT", scrollingFrame)
 local antiAfkToggle = createButton("AntiAfkToggle", UDim2.new(0, 140, 0, 160), "Anti-AFK: TẮT", scrollingFrame)
 local fishingToggle = createButton("FishingToggle", UDim2.new(0, 270, 0, 160), "Câu Cá: TẮT", scrollingFrame)
 
--- Hàng 4
 local waterWalkToggle = createButton("WaterWalkToggle", UDim2.new(0, 10, 0, 210), "Đi Trên Nước: TẮT", scrollingFrame)
 local flyToggle = createButton("FlyToggle", UDim2.new(0, 140, 0, 210), "Bay: TẮT", scrollingFrame)
 local infiniteJumpToggle = createButton("InfiniteJumpToggle", UDim2.new(0, 270, 0, 210), "Nhảy Vô Tận: TẮT", scrollingFrame)
 
--- Hàng 5
 local killAuraToggle = createButton("KillAuraToggle", UDim2.new(0, 10, 0, 260), "Kill Aura: TẮT", scrollingFrame)
+local historyButton = createButton("HistoryButton", UDim2.new(0, 140, 0, 260), "Lịch Sử by Hikaru Kurayami", scrollingFrame)
 
--- Nút trong menu câu cá
 local bypassFishButton = createButton("BypassFishButton", UDim2.new(0, 10, 0, 20), "Bypass Cá", fishingFrame)
 local autoFishButton = createButton("AutoFishButton", UDim2.new(0, 10, 0, 70), "Câu Cá BTh", fishingFrame)
+
+local isNoClip, isFishing, isBypassFishing, isAutoFishing, isFlying, isAntiAfk, isWaterWalk, isInfiniteJump, isKillAura = false, false, false, false, false, false, false, false, false
+local customWalkSpeed, customJumpPower = 16, 50
+local noclipConnection, fishingConnection, waterWalkConnection, waterPlatform, antiAfkConnection, infiniteJumpConnection, killAuraConnection = nil, nil, nil, nil, nil, nil, nil
+
+local function notify(message)
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Kirada Halloween",
+        Text = message,
+        Duration = 3
+    })
+end
+
+toggleButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+    TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0.5, -200, mainFrame.Visible and 0.5 or 1, mainFrame.Visible and -150 or 0)}):Play()
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.M then
+        toggleButton.MouseButton1Click:Fire()
+    end
+end)
+
+speedButton.MouseButton1Click:Connect(function()
+    local speed = tonumber(speedInput.Text)
+    if speed then
+        customWalkSpeed = math.clamp(speed, 0, 1000)
+        humanoid.WalkSpeed = customWalkSpeed
+        notify("Đã đặt tốc độ: " .. customWalkSpeed)
+    else
+        notify("Vui lòng nhập số hợp lệ cho tốc độ!")
+    end
+end)
+
+jumpButton.MouseButton1Click:Connect(function()
+    local jumpPower = tonumber(jumpInput.Text)
+    if jumpPower then
+        customJumpPower = math.clamp(jumpPower, 0, 500)
+        humanoid.UseJumpPower = true
+        humanoid.JumpPower = customJumpPower
+        notify("Đã đặt sức nhảy: " .. customJumpPower)
+    else
+        notify("Vui lòng nhập số hợp lệ cho sức nhảy!")
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    if character and humanoid then
+        humanoid.WalkSpeed = customWalkSpeed
+        humanoid.JumpPower = customJumpPower
+    end
+end)
+
+teleportButton.MouseButton1Click:Connect(function()
+    local targetName = teleportInput.Text
+    local targetPlayer
+    for _, p in pairs(Players:GetPlayers()) do
+        if p.Name:lower():find(targetName:lower()) then
+            targetPlayer = p
+            break
+        end
+    end
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character.HumanoidRootPart then
+        rootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 0, 2)
+        notify("Đã dịch chuyển đến: " .. targetPlayer.Name)
+    else
+        notify("Không tìm thấy người chơi hoặc tên không hợp lệ!")
+    end
+end)
+
+noclipToggle.MouseButton1Click:Connect(function()
+    isNoClip = not isNoClip
+    noclipToggle.Text = "Xuyên Tường: " .. (isNoClip and "BẬT" or "TẮT")
+    
+    if isNoClip then
+        noclipConnection = RunService.Stepped:Connect(function()
+            if character then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+                humanoid:ChangeState(Enum.HumanoidStateType.Running)
+            end
+        end)
+        notify("Đã bật Xuyên Tường")
+    else
+        if noclipConnection then
+            noclipConnection:Disconnect()
+            noclipConnection = nil
+        end
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+        notify("Đã tắt Xuyên Tường")
+    end
+end)
+
+antiAfkToggle.MouseButton1Click:Connect(function()
+    isAntiAfk = not isAntiAfk
+    antiAfkToggle.Text = "Anti-AFK: " .. (isAntiAfk and "BẬT" or "TẮT")
+    
+    if isAntiAfk then
+        antiAfkConnection = RunService.Heartbeat:Connect(function()
+            if tick() % 300 < 0.1 then
+                pcall(function()
+                    game:GetService("VirtualUser"):ClickButton1(Vector2.new(0, 0))
+                    notify("Anti-AFK: Đã mô phỏng nhấn chuột!")
+                end)
+            end
+        end)
+        notify("Đã bật Anti-AFK")
+    else
+        if antiAfkConnection then
+            antiAfkConnection:Disconnect()
+            antiAfkConnection = nil
+        end
+        notify("Đã tắt Anti-AFK")
+    end
+end)
+
+waterWalkToggle.MouseButton1Click:Connect(function()
+    isWaterWalk = not isWaterWalk
+    waterWalkToggle.Text = "Đi Trên Nước: " .. (isWaterWalk and "BẬT" or "TẮT")
+    
+    if isWaterWalk then
+        waterPlatform = Instance.new("Part")
+        waterPlatform.Size = Vector3.new(10, 0.5, 10)
+        waterPlatform.Transparency = 0.8
+        waterPlatform.BrickColor = BrickColor.new("Really black")
+        waterPlatform.CanCollide = true
+        waterPlatform.Anchored = true
+        waterPlatform.Parent = workspace
+        
+        waterWalkConnection = RunService.Stepped:Connect(function()
+            if character and rootPart and humanoid then
+                local rayParams = RaycastParams.new()
+                rayParams.FilterDescendantsInstances = {character, waterPlatform}
+                rayParams.FilterType = Enum.RaycastFilterType.Exclude
+                local ray = workspace:Raycast(rootPart.Position, Vector3.new(0, -10, 0), rayParams)
+                
+                local isOnWater, waterY
+                local cell = Terrain:WorldToCell(rootPart.Position)
+                if Terrain:GetMaterialVoxels(cell.X, cell.Y, cell.Z).Material == Enum.Material.Water then
+                    isOnWater, waterY = true, cell.Y * 4 + Terrain.WaterLevel
+                elseif ray and ray.Instance and ray.Instance.Name:lower():find("water|sea|ocean") then
+                    isOnWater, waterY = true, ray.Position.Y
+                end
+                
+                if isOnWater and waterY then
+                    waterPlatform.Position = Vector3.new(rootPart.Position.X, waterY + 0.25, rootPart.Position.Z)
+                    rootPart.Position = Vector3.new(rootPart.Position.X, waterY + 3, rootPart.Position.Z)
+                    humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                    humanoid.Sit = false
+                else
+                    waterPlatform.Position = Vector3.new(0, -1000, 0)
+                end
+            end
+        end)
+        notify("Đã bật Đi Trên Nước")
+    else
+        if waterWalkConnection then
+            waterWalkConnection:Disconnect()
+            waterWalkConnection = nil
+        end
+        if waterPlatform then
+            waterPlatform:Destroy()
+            waterPlatform = nil
+        end
+        notify("Đã tắt Đi Trên Nước")
+    end
+end)
+
+infiniteJumpToggle.MouseButton1Click:Connect(function()
+    isInfiniteJump = not isInfiniteJump
+    infiniteJumpToggle.Text = "Nhảy Vô Tận: " .. (isInfiniteJump and "BẬT" or "TẮT")
+    
+    if isInfiniteJump then
+        infiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
+            if humanoid then
+                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end)
+        notify("Đã bật Nhảy Vô Tận")
+    else
+        if infiniteJumpConnection then
+            infiniteJumpConnection:Disconnect()
+            infiniteJumpConnection = nil
+        end
+        notify("Đã tắt Nhảy Vô Tận")
+    end
+end)
+
+killAuraToggle.MouseButton1Click:Connect(function()
+    isKillAura = not isKillAura
+    killAuraToggle.Text = "Kill Aura: " .. (isKillAura and "BẬT" or "TẮT")
+    
+    if isKillAura then
+        killAuraConnection = RunService.Heartbeat:Connect(function()
+            if character and rootPart then
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("Model") and obj ~= character and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("HumanoidRootPart") and not Players:GetPlayerFromCharacter(obj) then
+                        local distance = (rootPart.Position - obj.HumanoidRootPart.Position).Magnitude
+                        if distance <= 20 then
+                            obj.Humanoid:TakeDamage(obj.Humanoid.MaxHealth)
+                        end
+                    end
+                end
+            end
+        end)
+        notify("Đã bật Kill Aura")
+    else
+        if killAuraConnection then
+            killAuraConnection:Disconnect()
+            killAuraConnection = nil
+        end
+        notify("Đã tắt Kill Aura")
+    end
+end)
+
+historyButton.MouseButton1Click:Connect(function()
+    local success, result = pcall(loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradahistory/refs/heads/main/Historyvietnam.lua")))
+    notify(success and "Đã chạy Lịch Sử by Hikaru Kurayami" or "Lỗi khi chạy Lịch Sử: " .. tostring(result))
+end)
+
+fishingToggle.MouseButton1Click:Connect(function()
+    isFishing = not isFishing
+    fishingToggle.Text = "Câu Cá: " .. (isFishing and "BẬT" or "TẮT")
+    
+    if isFishing then
+        fishingFrame.Visible = true
+        TweenService:Create(fishingFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0.5, -100, 0.5, -60)}):Play()
+        notify("Đã bật menu Câu Cá")
+    else
+        fishingFrame.Visible = false
+        TweenService:Create(fishingFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = UDim2.new(0.5, -100, 1, 0)}):Play()
+        isBypassFishing, isAutoFishing = false, false
+        if fishingConnection then
+            fishingConnection:Disconnect()
+            fishingConnection = nil
+        end
+        notify("Đã tắt Câu Cá")
+    end
+end)
+
+bypassFishButton.MouseButton1Click:Connect(function()
+    if not isFishing then return end
+    isBypassFishing = not isBypassFishing
+    isAutoFishing = false
+    bypassFishButton.Text = "Bypass Cá: " .. (isBypassFishing and "BẬT" or "TẮT")
+    autoFishButton.Text = "Câu Cá BTh: TẮT"
+    
+    if isBypassFishing then
+        fishingConnection = RunService.Heartbeat:Connect(function()
+            if character then
+                pcall(function()
+                    for _, v in pairs(ReplicatedStorage:GetDescendants()) do
+                        if v:IsA("RemoteEvent") and v.Name:lower():find("fish") then
+                            v:FireServer("Caught")
+                        end
+                    end
+                    for _, v in pairs(workspace:GetDescendants()) do
+                        if v:IsA("RemoteEvent") and v.Name:lower():find("fish") then
+                            v:FireServer("Caught")
+                        end
+                    end
+                end)
+            end
+        end)
+        notify("Đã bật Bypass Cá")
+    else
+        if fishingConnection then
+            fishingConnection:Disconnect()
+            fishingConnection = nil
+        end
+        notify("Đã tắt Bypass Cá")
+    end
+end)
+
+autoFishButton.MouseButton1Click:Connect(function()
+    if not isFishing then return end
+    isAutoFishing = not isAutoFishing
+    isBypassFishing = false
+    autoFishButton.Text = "Câu Cá BTh: " .. (isAutoFishing and "BẬT" or "TẮT")
+    bypassFishButton.Text = "Bypass Cá: TẮT"
+    
+    if isAutoFishing then
+        fishingConnection = RunService.Heartbeat:Connect(function()
+            if character then
+                pcall(function()
+                    for _, v in pairs(ReplicatedStorage:GetDescendants()) do
+                        if v:IsA("RemoteEvent") and v.Name:lower():find("cast") then
+                            v:FireServer()
+                            task.wait(2)
+                            if v.Name:lower():find("reel") then
+                                v:FireServer()
+                            end
+                        end
+                    end
+                    for _, v in pairs(workspace:GetDescendants()) do
+                        if v:IsA("RemoteEvent") and v.Name:lower():find("cast") then
+                            v:FireServer()
+                            task.wait(2)
+                            if v.Name:lower():find("reel") then
+                                v:FireServer()
+                            end
+                        end
+                    end
+                end)
+            end
+        end)
+        notify("Đã bật Câu Cá Bình Thường")
+    else
+        if fishingConnection then
+            fishingConnection:Disconnect()
+            fishingConnection = nil
+        end
+        notify("Đã tắt Câu Cá Bình Thường")
+    end
+end)
+
+flyToggle.MouseButton1Click:Connect(function()
+    isFlying = not isFlying
+    flyToggle.Text = "Bay: " .. (isFlying and "BẬT" or "TẮT")
+    
+    if isFlying then
+        for i = 3, 1, -1 do
+            notify("Bật Bay trong: " .. i .. " giây")
+            task.wait(1)
+        end
+        local success, result = pcall(loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradafly/main/Kiradafly.lua")))
+        if success then
+            notify("Đã bật chức năng Bay")
+        else
+            notify("Lỗi khi tải script Bay: " .. tostring(result))
+            isFlying = false
+            flyToggle.Text = "Bay: TẮT"
+        end
+    else
+        notify("Đã tắt chức năng Bay")
+    end
+end)
+
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = character:WaitForChild("Humanoid", 5)
+    rootPart = character:WaitForChild("HumanoidRootPart", 5)
+    
+    if not humanoid or not rootPart then
+        warn("Không tìm thấy Humanoid hoặc HumanoidRootPart sau khi reset!")
+        return
+    end
+    
+    if isNoClip then
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+local dragging, dragStart, startPos
+toggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch then
+        dragging, dragStart, startPos = true, input.Position, toggleButton.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+toggleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch and dragging then
+        local delta = input.Position - dragStart
+        toggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
