@@ -152,27 +152,36 @@ end
 RunService.Heartbeat:Connect(antiBan)
 local snowContainer=Instance.new("Frame")
 snowContainer.Size=UDim2.new(1,0,1,0)
+snowContainer.Position=UDim2.new(0,0,0,0)
 snowContainer.BackgroundTransparency=1
+snowContainer.ClipsDescendants=true
 snowContainer.Parent=ScreenGui
 snowContainer.Visible=false
 local snowflakes={}
 local function createSnowflake()
-    local s=Instance.new("TextLabel")
-    s.Size=UDim2.new(0,math.random(8,16),0,math.random(8,16))
-    s.Position=UDim2.new(0,math.random(0,workspace.CurrentCamera.ViewportSize.X),0,math.random(-100,0))
+    local cam=workspace.CurrentCamera
+    if not cam then return end
+    local screenSize=cam.ViewportSize
+    local s=Instance.new("ImageLabel")
+    s.Size=UDim2.new(0,math.random(10,20),0,math.random(10,20))
+    s.Position=UDim2.new(0,math.random(0,screenSize.X),0,math.random(-50,0))
     s.BackgroundTransparency=1
-    s.Text="Snowflake"
-    s.TextColor3=Color3.fromRGB(255,255,255)
-    s.TextScaled=true
-    s.Font=Enum.Font.Gothic
-    s.Rotation=math.random(-30,30)
+    s.Image="rbxassetid://241560853" -- bông tuyết thật
+    s.ImageColor3=Color3.fromRGB(255,255,255)
+    s.ImageTransparency=0
+    s.Rotation=math.random(-45,45)
+    s.ZIndex=999
     s.Parent=snowContainer
-    local speed=math.random(30,80)/10
-    local sway=math.random(-20,20)
-    local tween=TweenService:Create(s,TweenInfo.new(speed,Enum.EasingStyle.Linear),{Position=UDim2.new(0,s.Position.X.Offset+sway,1,0),Transparency=1})
+    local speed=math.random(40,100)/10
+    local sway=math.random(-30,30)
+    local tween=TweenService:Create(s,TweenInfo.new(speed,Enum.EasingStyle.Linear),{
+        Position=UDim2.new(0,s.Position.X.Offset+sway,1,0),
+        ImageTransparency=1,
+        Rotation=s.Rotation+math.random(-90,90)
+    })
     tween:Play()
     tween.Completed:Connect(function()
-        s:Destroy()
+        if s and s.Parent then s:Destroy()end
         table.remove(snowflakes,table.find(snowflakes,s))
     end)
     table.insert(snowflakes,s)
@@ -181,9 +190,9 @@ local snowConnection
 local function startSnow()
     if snowConnection then return end
     snowContainer.Visible=true
-    for i=1,30 do createSnowflake()end
+    for i=1,25 do task.spawn(createSnowflake)end
     snowConnection=RunService.Heartbeat:Connect(function()
-        if #snowflakes<30 then createSnowflake()end
+        if #snowflakes<25 then task.spawn(createSnowflake)end
     end)
 end
 local function stopSnow()
@@ -234,7 +243,7 @@ noclipToggle.MouseButton1Click:Connect(function()
         noclipConnection=RunService.Stepped:Connect(function()
             if character then for _,p in pairs(character:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=false end end end
         end)
-        notify("Bật Xuyên Tường")
+notify("Bật Xuyên Tường")
     else
         if noclipConnection then noclipConnection:Disconnect()noclipConnection=nil end
         if character then for _,p in pairs(character:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=true end end end
@@ -264,21 +273,24 @@ waterWalkToggle.MouseButton1Click:Connect(function()
         waterPlatform.CanCollide=true
         waterPlatform.Anchored=true
         waterPlatform.Parent=workspace
+        local params=RaycastParams.new()
+        params.FilterDescendantsInstances={character,waterPlatform}
+        params.FilterType=Enum.RaycastFilterType.Exclude
         waterWalkConnection=RunService.Stepped:Connect(function()
             if character and rootPart then
-                local r=workspace:Raycast(rootPart.Position,Vector3.new(0,-10,0))
+                local ray=workspace:Raycast(rootPart.Position,Vector3.new(0,-10,0),params)
                 local cell=Terrain:WorldToCell(rootPart.Position)
                 local onWater=false
                 local y=0
                 if Terrain:GetMaterialVoxels(cell.X,cell.Y,cell.Z).Material==Enum.Material.Water then onWater=true y=cell.Y*4+Terrain.WaterLevel
-                elseif r and r.Instance.Name:lower():find("water")then onWater=true y=r.Position.Y end
+                elseif ray and ray.Instance.Name:lower():find("water")then onWater=true y=ray.Position.Y end
                 if onWater then
                     waterPlatform.Position=Vector3.new(rootPart.Position.X,y+0.25,rootPart.Position.Z)
                     rootPart.Position=Vector3.new(rootPart.Position.X,y+3,rootPart.Position.Z)
                 else waterPlatform.Position=Vector3.new(0,-1000,0)end
             end
         end)
-        notify("Bật Đi Trên Nước")
+notify("Bật Đi Trên Nước")
     else
         if waterWalkConnection then waterWalkConnection:Disconnect()waterWalkConnection=nil end
         if waterPlatform then waterPlatform:Destroy()waterPlatform=nil end
