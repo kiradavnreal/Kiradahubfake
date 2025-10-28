@@ -9,11 +9,17 @@ local character=player.Character or player.CharacterAdded:Wait()
 local humanoid=character:WaitForChild("Humanoid",5)
 local rootPart=character:WaitForChild("HumanoidRootPart",5)
 if not humanoid or not rootPart then return end
+
+local isNoClip,isFishing,isBypassFishing,isAutoFishing,isFlying,isAntiAfk,isWaterWalk,isInfiniteJump,isKillAura,isHistory=false,false,false,false,false,false,false,false,false,false
+local customWalkSpeed,customJumpPower=16,50
+local noclipConnection,waterWalkConnection,antiAfkConnection,infiniteJumpConnection,killAuraConnection,bypassConnection,autoFishConnection,waterPlatform,snowConnection
+
 local ScreenGui=Instance.new("ScreenGui")
 ScreenGui.Name="KiradaGiángSinh"
 ScreenGui.Parent=player.PlayerGui
 ScreenGui.ResetOnSpawn=false
 ScreenGui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+
 local toggleButton=Instance.new("ImageButton")
 toggleButton.Size=UDim2.new(0,70,0,70)
 toggleButton.Position=UDim2.new(0,10,0,10)
@@ -21,6 +27,7 @@ toggleButton.BackgroundColor3=Color3.fromRGB(255,255,255)
 toggleButton.Image="rbxassetid://60627712"
 toggleButton.Parent=ScreenGui
 Instance.new("UICorner",toggleButton).CornerRadius=UDim.new(0,20)
+
 local toggleIcon=Instance.new("TextLabel")
 toggleIcon.Size=UDim2.new(1,0,1,0)
 toggleIcon.BackgroundTransparency=1
@@ -29,6 +36,7 @@ toggleIcon.TextColor3=Color3.fromRGB(0,100,0)
 toggleIcon.TextScaled=true
 toggleIcon.Font=Enum.Font.Gothic
 toggleIcon.Parent=toggleButton
+
 local mainFrame=Instance.new("Frame")
 mainFrame.Size=UDim2.new(0,450,0,400)
 mainFrame.Position=UDim2.new(0.5,-225,0.5,-200)
@@ -37,16 +45,19 @@ mainFrame.BackgroundTransparency=0.4
 mainFrame.Visible=false
 mainFrame.Parent=ScreenGui
 Instance.new("UICorner",mainFrame).CornerRadius=UDim.new(0,15)
+
 local bgImage=Instance.new("ImageLabel")
 bgImage.Size=UDim2.new(1,0,1,0)
 bgImage.BackgroundTransparency=1
 bgImage.Image="rbxassetid://60627712"
 bgImage.ImageTransparency=0.7
 bgImage.Parent=mainFrame
+
 local gradient=Instance.new("UIGradient")
 gradient.Color=ColorSequence.new{ColorSequenceKeypoint.new(0,Color3.fromRGB(139,0,0)),ColorSequenceKeypoint.new(1,Color3.fromRGB(255,255,255))}
 gradient.Rotation=45
 gradient.Parent=mainFrame
+
 local scrollingFrame=Instance.new("ScrollingFrame")
 scrollingFrame.Size=UDim2.new(1,-20,1,-20)
 scrollingFrame.Position=UDim2.new(0,10,0,10)
@@ -55,6 +66,7 @@ scrollingFrame.ScrollBarThickness=10
 scrollingFrame.ScrollBarImageColor3=Color3.fromRGB(255,255,255)
 scrollingFrame.CanvasSize=UDim2.new(0,0,0,650)
 scrollingFrame.Parent=mainFrame
+
 local fishingFrame=Instance.new("Frame")
 fishingFrame.Size=UDim2.new(0,220,0,140)
 fishingFrame.Position=UDim2.new(0.5,-110,0.5,-70)
@@ -63,58 +75,64 @@ fishingFrame.BackgroundTransparency=0.4
 fishingFrame.Visible=false
 fishingFrame.Parent=ScreenGui
 Instance.new("UICorner",fishingFrame).CornerRadius=UDim.new(0,15)
-Instance.new("UIGradient",fishingFrame).Color=gradient.Color
-Instance.new("UIGradient",fishingFrame).Rotation=45
+local fishGradient=Instance.new("UIGradient")
+fishGradient.Color=gradient.Color
+fishGradient.Rotation=45
+fishGradient.Parent=fishingFrame
 local fishBgImage=Instance.new("ImageLabel")
 fishBgImage.Size=UDim2.new(1,0,1,0)
 fishBgImage.BackgroundTransparency=1
 fishBgImage.Image="rbxassetid://60627712"
 fishBgImage.ImageTransparency=0.7
 fishBgImage.Parent=fishingFrame
+
 local function createTextBox(n,p,h)
-    local t=Instance.new("TextBox")
-    t.Size=UDim2.new(0,130,0,45)
-    t.Position=p
-    t.BackgroundColor3=Color3.fromRGB(20,20,20)
-    t.TextColor3=Color3.fromRGB(255,255,255)
-    t.PlaceholderText=h
-    t.Text=""
-    t.TextScaled=true
-    t.Font=Enum.Font.Gothic
-    t.Parent=scrollingFrame
-    t.Name=n
-    Instance.new("UICorner",t).CornerRadius=UDim.new(0,10)
-    return t
+	local t=Instance.new("TextBox")
+	t.Size=UDim2.new(0,130,0,45)
+	t.Position=p
+	t.BackgroundColor3=Color3.fromRGB(20,20,20)
+	t.TextColor3=Color3.fromRGB(255,255,255)
+	t.PlaceholderText=h
+	t.Text=""
+	t.TextScaled=true
+	t.Font=Enum.Font.Gothic
+	t.Parent=scrollingFrame
+	t.Name=n
+	Instance.new("UICorner",t).CornerRadius=UDim.new(0,10)
+	return t
 end
+
 local function createButton(n,p,t,par)
-    local b=Instance.new("TextButton")
-    b.Size=UDim2.new(0,130,0,45)
-    b.Position=p
-    b.BackgroundColor3=Color3.fromRGB(255,255,255)
-    b.TextColor3=Color3.fromRGB(0,0,0)
-    b.Text="Snowflake "..t
-    b.TextScaled=true
-    b.Font=Enum.Font.Gothic
-    b.Parent=par
-    b.Name=n
-    Instance.new("UICorner",b).CornerRadius=UDim.new(0,10)
-    b.MouseEnter:Connect(function()
-        TweenService:Create(b,TweenInfo.new(0.3),{BackgroundColor3=Color3.fromRGB(200,200,200)}):Play()
-    end)
-    b.MouseLeave:Connect(function()
-        TweenService:Create(b,TweenInfo.new(0.3),{BackgroundColor3=Color3.fromRGB(255,255,255)}):Play()
-    end)
-    return b
+	local b=Instance.new("TextButton")
+	b.Size=UDim2.new(0,130,0,45)
+	b.Position=p
+	b.BackgroundColor3=Color3.fromRGB(255,255,255)
+	b.TextColor3=Color3.fromRGB(0,0,0)
+	b.Text="Snowflake "..t
+	b.TextScaled=true
+	b.Font=Enum.Font.Gothic
+	b.Parent=par
+	b.Name=n
+	Instance.new("UICorner",b).CornerRadius=UDim.new(0,10)
+	b.MouseEnter:Connect(function()
+		TweenService:Create(b,TweenInfo.new(0.3),{BackgroundColor3=Color3.fromRGB(200,200,200)}):Play()
+	end)
+	b.MouseLeave:Connect(function()
+		TweenService:Create(b,TweenInfo.new(0.3),{BackgroundColor3=Color3.fromRGB(255,255,255)}):Play()
+	end)
+	return b
 end
+
 local titleLabel=Instance.new("TextLabel")
 titleLabel.Size=UDim2.new(0,420,0,50)
 titleLabel.Position=UDim2.new(0,15,0,10)
 titleLabel.BackgroundTransparency=1
 titleLabel.TextColor3=Color3.fromRGB(255,255,255)
-titleLabel.Text="Snowflake Kirada Giáng Sinh (beta 1.4,5) Snowflake"
+titleLabel.Text="Snowflake Kirada Giáng Sinh (beta 1.4.5) Snowflake"
 titleLabel.TextScaled=true
 titleLabel.Font=Enum.Font.Gothic
 titleLabel.Parent=scrollingFrame
+
 local speedButton=createButton("SpeedButton",UDim2.new(0,10,0,70),"Đặt Tốc Độ",scrollingFrame)
 local speedInput=createTextBox("SpeedInput",UDim2.new(0,150,0,70),"Tốc độ (VD: 100)")
 local jumpButton=createButton("JumpButton",UDim2.new(0,290,0,70),"Đặt Nhảy",scrollingFrame)
@@ -133,25 +151,7 @@ local bypassFishButton=createButton("BypassFishButton",UDim2.new(0,10,0,20),"Byp
 local autoFishButton=createButton("AutoFishButton",UDim2.new(0,10,0,80),"Câu Cá BTh",fishingFrame)
 local rainLightCopy=createButton("RainLightCopy",UDim2.new(0,10,0,350),"Copy: Một ngày mưa nhẹ",scrollingFrame)
 local tacoRainCopy=createButton("TacoRainCopy",UDim2.new(0,150,0,350),"Copy: Cơn mưa taco",scrollingFrame)
-local isNoClip,isFishing,isBypassFishing,isAutoFishing,isFlying,isAntiAfk,isWaterWalk,isInfiniteJump,isKillAura,isHistory=false,false,false,false,false,false,false,false,false,false
-local customWalkSpeed,customJumpPower=16,50
-local noclipConnection,fishingConnection,waterWalkConnection,waterPlatform,antiAfkConnection,infiniteJumpConnection,killAuraConnection,historyConnection=nil,nil,nil,nil,nil,nil,nil,nil
-local function notify(m)game.StarterGui:SetCore("SendNotification",{Title="Kirada Giáng Sinh Snowflake",Text=m,Duration=3})end
-local function antiBan()
-    pcall(function()
-        task.wait(math.random(5,15)/10)
-        if humanoid then
-            humanoid.WalkSpeed=math.clamp(humanoid.WalkSpeed,16,100)
-            humanoid.JumpPower=math.clamp(humanoid.JumpPower,50,100)
-        end
-        for _,v in pairs(ReplicatedStorage:GetDescendants())do
-            if v:IsA("RemoteEvent")and v.Name:lower():find("ban|kick|detect")then
-                v.Name=v.Name.."_x_"..math.random(1e3,9999)
-            end
-        end
-    end)
-end
-RunService.Heartbeat:Connect(antiBan)
+
 local snowContainer=Instance.new("Frame")
 snowContainer.Size=UDim2.new(1,0,1,0)
 snowContainer.Position=UDim2.new(0,0,0,0)
@@ -160,295 +160,348 @@ snowContainer.ClipsDescendants=true
 snowContainer.Parent=ScreenGui
 snowContainer.Visible=false
 local snowflakes={}
+
 local function createSnowflake()
-    local cam=workspace.CurrentCamera
-    if not cam then return end
-    local screenSize=cam.ViewportSize
-    local s=Instance.new("ImageLabel")
-    s.Size=UDim2.new(0,math.random(10,20),0,math.random(10,20))
-    s.Position=UDim2.new(0,math.random(0,screenSize.X),0,math.random(-50,0))
-    s.BackgroundTransparency=1
-    s.Image="rbxassetid://241560853"
-    s.ImageColor3=Color3.fromRGB(255,255,255)
-    s.ImageTransparency=0
-    s.Rotation=math.random(-45,45)
-    s.ZIndex=999
-    s.Parent=snowContainer
-    local speed=math.random(40,100)/10
-    local sway=math.random(-30,30)
-    local tween=TweenService:Create(s,TweenInfo.new(speed,Enum.EasingStyle.Linear),{
-        Position=UDim2.new(0,s.Position.X.Offset+sway,1,0),
-        ImageTransparency=1,
-        Rotation=s.Rotation+math.random(-90,90)
-    })
-    tween:Play()
-    tween.Completed:Connect(function()
-        if s and s.Parent then s:Destroy()end
-        table.remove(snowflakes,table.find(snowflakes,s))
-    end)
-    table.insert(snowflakes,s)
+	local cam=workspace.CurrentCamera
+	if not cam then return end
+	local screenSize=cam.ViewportSize
+	local s=Instance.new("ImageLabel")
+	s.Size=UDim2.new(0,math.random(10,20),0,math.random(10,20))
+	s.Position=UDim2.new(0,math.random(0,screenSize.X),0,math.random(-50,0))
+	s.BackgroundTransparency=1
+	s.Image="rbxassetid://241560853"
+	s.ImageColor3=Color3.fromRGB(255,255,255)
+	s.Rotation=math.random(-45,45)
+	s.ZIndex=999
+	s.Parent=snowContainer
+	local speed=math.random(40,100)/10
+	local sway=math.random(-30,30)
+	local tween=TweenService:Create(s,TweenInfo.new(speed,Enum.EasingStyle.Linear),{
+		Position=UDim2.new(0,s.Position.X.Offset+sway,1,0),
+		ImageTransparency=1,
+		Rotation=s.Rotation+math.random(-90,90)
+	})
+	tween:Play()
+	tween.Completed:Connect(function()
+		if s and s.Parent then s:Destroy()end
+		table.remove(snowflakes,table.find(snowflakes,s))
+	end)
+	table.insert(snowflakes,s)
 end
-local snowConnection
+
 local function startSnow()
-    if snowConnection then return end
-    snowContainer.Visible=true
-    for i=1,25 do task.spawn(createSnowflake)end
-    snowConnection=RunService.Heartbeat:Connect(function()
-        if #snowflakes<25 then task.spawn(createSnowflake)end
-    end)
+	if snowConnection then return end
+	snowContainer.Visible=true
+	for i=1,25 do task.spawn(createSnowflake)end
+	snowConnection=RunService.Heartbeat:Connect(function()
+		if #snowflakes<25 then task.spawn(createSnowflake)end
+	end)
 end
+
 local function stopSnow()
-    if snowConnection then snowConnection:Disconnect()snowConnection=nil end
-    snowContainer.Visible=false
-    for _,s in pairs(snowflakes)do if s and s.Parent then s:Destroy()end end
-    snowflakes={}
+	if snowConnection then snowConnection:Disconnect() snowConnection=nil end
+	snowContainer.Visible=false
+	for _,s in pairs(snowflakes)do if s and s.Parent then s:Destroy()end end
+	snowflakes={}
 end
+
+local function notify(m)
+	game.StarterGui:SetCore("SendNotification",{Title="Kirada Giáng Sinh Snowflake",Text=m,Duration=3})
+end
+
 local function copyID(id,name)
-    if setclipboard then
-        setclipboard(id)
-        game.StarterGui:SetCore("SendNotification",{Title="COPY ID!",Text=name.."\nID: "..id,Duration=2})
-    end
+	if setclipboard then
+		setclipboard(id)
+		notify("Đã copy: "..name.."\nID: "..id)
+	end
 end
+
 rainLightCopy.MouseButton1Click:Connect(function()copyID("81829609054965","Một ngày mưa nhẹ")end)
 tacoRainCopy.MouseButton1Click:Connect(function()copyID("142376088","Cơn mưa taco")end)
+
+local function openMenu()
+	mainFrame.Visible=true
+	mainFrame.Size=UDim2.new(0,0,0,0)
+	mainFrame.Position=UDim2.new(0.5,0,0.5,0)
+	TweenService:Create(mainFrame,TweenInfo.new(0.4,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{
+		Size=UDim2.new(0,450,0,400),
+		Position=UDim2.new(0.5,-225,0.5,-200)
+	}):Play()
+	TweenService:Create(mainFrame,TweenInfo.new(0.3),{BackgroundTransparency=0.4}):Play()
+	startSnow()
+end
+
+local function closeMenu()
+	TweenService:Create(mainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quad),{
+		Size=UDim2.new(0,0,0,0),
+		Position=UDim2.new(0.5,0,0.5,0)
+	}):Play()
+	TweenService:Create(mainFrame,TweenInfo.new(0.2),{BackgroundTransparency=1}):Play()
+	task.delay(0.35,function() mainFrame.Visible=false stopSnow() end)
+end
+
 toggleButton.MouseButton1Click:Connect(function()
-    mainFrame.Visible=not mainFrame.Visible
-    TweenService:Create(mainFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quad),{Position=mainFrame.Visible and UDim2.new(0.5,-225,0.5,-200)or UDim2.new(0.5,-225,1,0)}):Play()
-    if mainFrame.Visible then startSnow() else stopSnow() end
+	if mainFrame.Visible then closeMenu() else openMenu() end
 end)
-UserInputService.InputBegan:Connect(function(i,gp)if not gp and i.KeyCode==Enum.KeyCode.M then toggleButton.MouseButton1Click:Fire()end end)
+
+UserInputService.InputBegan:Connect(function(i,gp)
+	if not gp and i.KeyCode==Enum.KeyCode.M then toggleButton.MouseButton1Click:Fire() end
+end)
+
 speedButton.MouseButton1Click:Connect(function()
-    local s=tonumber(speedInput.Text)
-    if s then
-        customWalkSpeed=math.clamp(s,0,1000)
-        humanoid.WalkSpeed=customWalkSpeed
-        notify("Đã đặt tốc độ: "..customWalkSpeed)
-    else notify("Nhập số hợp lệ!")end
+	local s=tonumber(speedInput.Text)
+	if s then
+		customWalkSpeed=math.clamp(s,0,1000)
+		humanoid.WalkSpeed=customWalkSpeed
+		notify("Đã đặt tốc độ: "..customWalkSpeed)
+	else notify("Nhập số hợp lệ!")end
 end)
+
 jumpButton.MouseButton1Click:Connect(function()
-    local j=tonumber(jumpInput.Text)
-    if j then
-        customJumpPower=math.clamp(j,0,500)
-        humanoid.UseJumpPower=true
-        humanoid.JumpPower=customJumpPower
-        notify("Đã đặt nhảy: "..customJumpPower)
-    else notify("Nhập số hợp lệ!")end
+	local j=tonumber(jumpInput.Text)
+	if j then
+		customJumpPower=math.clamp(j,0,500)
+		humanoid.UseJumpPower=true
+		humanoid.JumpPower=customJumpPower
+		notify("Đã đặt nhảy: "..customJumpPower)
+	else notify("Nhập số hợp lệ!")end
 end)
-RunService.Heartbeat:Connect(function()if character and humanoid then humanoid.WalkSpeed=customWalkSpeed humanoid.JumpPower=customJumpPower end end)
+
+RunService.Heartbeat:Connect(function()
+	if character and humanoid then
+		humanoid.WalkSpeed=customWalkSpeed
+		humanoid.JumpPower=customJumpPower
+	end
+end)
+
 teleportButton.MouseButton1Click:Connect(function()
-    local t=teleportInput.Text
-    local tp
-    for _,p in pairs(Players:GetPlayers())do
-        if p.Name:lower():find(t:lower())then tp=p break end
-    end
-    if tp and tp.Character and tp.Character:FindFirstChild("HumanoidRootPart")then
-        rootPart.CFrame=tp.Character.HumanoidRootPart.CFrame+Vector3.new(0,0,2)
-        notify("Dịch chuyển đến: "..tp.Name)
-    else notify("Không tìm thấy!")end
+	local t=teleportInput.Text:lower()
+	local target
+	for _,p in pairs(Players:GetPlayers())do
+		if p.Name:lower():find(t) or p.DisplayName:lower():find(t)then target=p break end
+	end
+	if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart")then
+		rootPart.CFrame=target.Character.HumanoidRootPart.CFrame+Vector3.new(0,0,2)
+		notify("Dịch chuyển đến: "..target.Name)
+	else notify("Không tìm thấy!")end
 end)
+
 noclipToggle.MouseButton1Click:Connect(function()
-    isNoClip=not isNoClip
-    noclipToggle.Text="Snowflake Xuyên Tường: "..(isNoClip and "BẬT"or"TẮT")
-    if isNoClip then
-        noclipConnection=RunService.Stepped:Connect(function()
-            if character then for _,p in pairs(character:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=false end end end
-        end)
-        notify("Bật Xuyên Tường")
-    else
-        if noclip,connection then noclipConnection:Disconnect()noclipConnection=nil end
-        if character then for _,p in pairs(character:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=true end end end
-        notify("Tắt Xuyên Tường")
-    end
+	isNoClip=not isNoClip
+	noclipToggle.Text="Snowflake Xuyên Tường: "..(isNoClip and "BẬT"or"TẮT")
+	if isNoClip then
+		noclipConnection=RunService.Stepped:Connect(function()
+			if character then for _,p in pairs(character:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=false end end end
+		end)
+		notify("Bật Xuyên Tường")
+	else
+		if noclipConnection then noclipConnection:Disconnect() noclipConnection=nil end
+		if character then for _,p in pairs(character:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=true end end end
+		notify("Tắt Xuyên Tường")
+	end
 end)
+
+local lastClick=0
 antiAfkToggle.MouseButton1Click:Connect(function()
-    isAntiAfk=not isAntiAfk
-    antiAfkToggle.Text="Snowflake Anti-AFK: "..(isAntiAfk and "BẬT"or"TẮT")
-    if isAntiAfk then
-        antiAfkConnection=RunService.Heartbeat:Connect(function()
-            if tick()%300<0.1 then pcall(function()game:GetService("VirtualUser"):ClickButton1(Vector2.new())end)end
-        end)
-        notify("Bật Anti-AFK")
-    else
-        if antiAfkConnection then antiAfkConnection:Disconnect()antiAfkConnection=nil end
-        notify("Tắt Anti-AFK")
-    end
+	isAntiAfk=not isAntiAfk
+	antiAfkToggle.Text="Snowflake Anti-AFK: "..(isAntiAfk and "BẬT"or"TẮT")
+	if isAntiAfk then
+		antiAfkConnection=RunService.Heartbeat:Connect(function()
+			if tick()-lastClick>300 then
+				pcall(function()game:GetService("VirtualUser"):ClickButton1(Vector2.new())end)
+				lastClick=tick()
+			end
+		end)
+		notify("Bật Anti-AFK")
+	else
+		if antiAfkConnection then antiAfkConnection:Disconnect() antiAfkConnection=nil end
+		notify("Tắt Anti-AFK")
+	end
 end)
+
 waterWalkToggle.MouseButton1Click:Connect(function()
-    isWaterWalk=not isWaterWalk
-    waterWalkToggle.Text="Snowflake Đi Trên Nước: "..(isWaterWalk and "BẬT"or"TẮT")
-    if isWaterWalk then
-        waterPlatform=Instance.new("Part")
-        waterPlatform.Size=Vector3.new(10,0.5,10)
-        waterPlatform.Transparency=0.8
-        waterPlatform.CanCollide=true
-        waterPlatform.Anchored=true
-        waterPlatform.Parent=workspace
-        local params=RaycastParams.new()
-        params.FilterDescendantsInstances={character,waterPlatform}
-        params.FilterType=Enum.RaycastFilterType.Exclude
-        waterWalkConnection=RunService.Stepped:Connect(function()
-            if character and rootPart then
-                local ray=workspace:Raycast(rootPart.Position,Vector3.new(0,-10,0),params)
-                local cell=Terrain:WorldToCell(rootPart.Position)
-                local onWater=false
-                local y=0
-                if Terrain:GetMaterialVoxels(cell.X,cell.Y,cell.Z).Material==Enum.Material.Water then onWater=true y=cell.Y*4+Terrain.WaterLevel
-                elseif ray and ray.Instance.Name:lower():find("water")then onWater=true y=ray.Position.Y end
-                if onWater then
-                    waterPlatform.Position=Vector3.new(rootPart.Position.X,y+0.25,rootPart.Position.Z)
-                    rootPart.Position=Vector3.new(rootPart.Position.X,y+3,rootPart.Position.Z)
-                else waterPlatform.Position=Vector3.new(0,-1000,0)end
-            end
-        end)
-        notify("Bật Đi Trên Nước")
-    else
-        if waterWalkConnection then waterWalkConnection:Disconnect()waterWalkConnection=nil end
-        if waterPlatform then waterPlatform:Destroy()waterPlatform=nil end
-        notify("Tắt Đi Trên Nước")
-    end
+	isWaterWalk=not isWaterWalk
+	waterWalkToggle.Text="Snowflake Đi Trên Nước: "..(isWaterWalk and "BẬT"or"TẮT")
+	if isWaterWalk then
+		waterPlatform=Instance.new("Part")
+		waterPlatform.Size=Vector3.new(10,0.5,10)
+		waterPlatform.Transparency=0.8
+		waterPlatform.CanCollide=true
+		waterPlatform.Anchored=true
+		waterPlatform.Parent=workspace
+		waterWalkConnection=RunService.Stepped:Connect(function()
+			if character and rootPart then
+				local onWater=Terrain:WaterAtPosition(rootPart.Position)
+				local waterY=Terrain:GetWaterHeight(rootPart.Position)or 0
+				if onWater then
+					waterPlatform.Position=Vector3.new(rootPart.Position.X,waterY+0.25,rootPart.Position.Z)
+				else
+					waterPlatform.Position=Vector3.new(0,-1000,0)
+				end
+			end
+		end)
+		notify("Bật Đi Trên Nước")
+	else
+		if waterWalkConnection then waterWalkConnection:Disconnect() waterWalkConnection=nil end
+		if waterPlatform then waterPlatform:Destroy() waterPlatform=nil end
+		notify("Tắt Đi Trên Nước")
+	end
 end)
+
 infiniteJumpToggle.MouseButton1Click:Connect(function()
-    isInfiniteJump=not isInfiniteJump
-    infiniteJumpToggle.Text="Snowflake Nhảy Vô Tận: "..(isInfiniteJump and "BẬT"or"TẮT")
-    if isInfiniteJump then
-        infiniteJumpConnection=UserInputService.JumpRequest:Connect(function()if humanoid then humanoid:ChangeState(Enum.HumanoidStateType.Jumping)end end)
-        notify("Bật Nhảy Vô Tận")
-    else
-        if infiniteJumpConnection then infiniteJumpConnection:Disconnect()infiniteJumpConnection=nil end
-        notify("Tắt Nhảy Vô Tận")
-    end
+	isInfiniteJump=not isInfiniteJump
+	infiniteJumpToggle.Text="Snowflake Nhảy Vô Tận: "..(isInfiniteJump and "BẬT"or"TẮT")
+	if isInfiniteJump then
+		infiniteJumpConnection=UserInputService.JumpRequest:Connect(function()
+			if humanoid then humanoid:ChangeState(Enum.HumanoidStateType.Jumping)end
+		end)
+		notify("Bật Nhảy Vô Tận")
+	else
+		if infiniteJumpConnection then infiniteJumpConnection:Disconnect() infiniteJumpConnection=nil end
+		notify("Tắt Nhảy Vô Tận")
+	end
 end)
+
 killAuraToggle.MouseButton1Click:Connect(function()
-    isKillAura=not isKillAura
-    killAuraToggle.Text="Snowflake Kill Aura: "..(isKillAura and "BẬT"or"TẮT")
-    if isKillAura then
-        killAuraConnection=RunService.Heartbeat:Connect(function()
-            if character and rootPart then
-                for _,m in pairs(workspace:GetDescendants())do
-                    if m:IsA("Model")and m~=character and m:FindFirstChild("Humanoid")and m:FindFirstChild("HumanoidRootPart")and not Players:GetPlayerFromCharacter(m)then
-                        local d=(rootPart.Position-m.HumanoidRootPart.Position).Magnitude
-                        if d<=20 then pcall(function()m.Humanoid:TakeDamage(math.random(5,10))end)end
-                    end
-                end
-            end
-        end)
-        notify("Bật Kill Aura")
-    else
-        if killAuraConnection then killAuraConnection:Disconnect()killAuraConnection=nil end
-        notify("Tắt Kill Aura")
-    end
+	isKillAura=not isKillAura
+	killAuraToggle.Text="Snowflake Kill Aura: "..(isKillAura and "BẬT"or"TẮT")
+	if isKillAura then
+		killAuraConnection=RunService.Heartbeat:Connect(function()
+			if character and rootPart then
+				for _,m in pairs(workspace:GetDescendants())do
+					if m:IsA("Model")and m~=character and m:FindFirstChild("Humanoid")and m:FindFirstChild("HumanoidRootPart")and not Players:GetPlayerFromCharacter(m)then
+						local d=(rootPart.Position-m.HumanoidRootPart.Position).Magnitude
+						if d<=20 then pcall(function()m.Humanoid:TakeDamage(math.random(5,10))end)end
+					end
+				end
+			end
+		end)
+		notify("Bật Kill Aura")
+	else
+		if killAuraConnection then killAuraConnection:Disconnect() killAuraConnection=nil end
+		notify("Tắt Kill Aura")
+	end
 end)
+
 historyToggle.MouseButton1Click:Connect(function()
-    isHistory=not isHistory
-    historyToggle.Text="Snowflake Lịch Sử: "..(isHistory and "BẬT"or"TẮT")
-    if isHistory then
-        local s,r=pcall(loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradahistory/refs/heads/main/Historyvietnam.lua")))
-        if s then
-            historyConnection=RunService.Heartbeat:Connect(function()
-                pcall(function()
-                    if character then loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradahistory/refs/heads/main/Historyvietnam.lua"))()end
-                end)
-            end)
-            notify("Bật Lịch Sử by Hikaru Kurayami")
-        else
-            isHistory=false
-            historyToggle.Text="Snowflake Lịch Sử: TẮT"
-            notify("Lỗi tải Lịch Sử: "..tostring(r))
-        end
-    else
-        if historyConnection then historyConnection:Disconnect()historyConnection=nil end
-        notify("Tắt Lịch Sử by Hikaru Kurayami")
-    end
+	isHistory=not isHistory
+	historyToggle.Text="Snowflake Lịch Sử: "..(isHistory and "BẬT"or"TẮT")
+	if isHistory then
+		local ok,err=pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradahistory/refs/heads/main/Historyvietnam.lua"))()
+		end)
+		if ok then notify("Bật Lịch Sử by Hikaru Kurayami")
+		else isHistory=false historyToggle.Text="Snowflake Lịch Sử: TẮT" notify("Lỗi: "..tostring(err))end
+	else notify("Tắt Lịch Sử by Hikaru Kurayami")end
 end)
+
 fishingToggle.MouseButton1Click:Connect(function()
-    isFishing=not isFishing
-    fishingToggle.Text="Snowflake Câu Cá: "..(isFishing and "BẬT"or"TẮT")
-    if isFishing then
-        fishingFrame.Visible=true
-        TweenService:Create(fishingFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quad),{Position=UDim2.new(0.5,-110,0.5,-70)}):Play()
-        notify("Mở menu Câu Cá")
-    else
-        fishingFrame.Visible=false
-        TweenService:Create(fishingFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quad),{Position=UDim2.new(0.5,-110,1,0)}):Play()
-        isBypassFishing,isAutoFishing=false,false
-        if fishingConnection then fishingConnection:Disconnect()fishingConnection=nil end
-        notify("Đóng Câu Cá")
-    end
+	isFishing=not isFishing
+	fishingToggle.Text="Snowflake Câu Cá: "..(isFishing and "BẬT"or"TẮT")
+	if isFishing then
+		fishingFrame.Visible=true
+		TweenService:Create(fishingFrame,TweenInfo.new(0.4,Enum.EasingStyle.Back),{Position=UDim2.new(0.5,-110,0.5,-70)}):Play()
+		notify("Mở menu Câu Cá")
+	else
+		TweenService:Create(fishingFrame,TweenInfo.new(0.3),{Position=UDim2.new(0.5,-110,1,0)}):Play()
+		task.delay(0.35,function()fishingFrame.Visible=false end)
+		isBypassFishing=isAutoFishing=false,false
+		if bypassConnection then bypassConnection:Disconnect()end
+		if autoFishConnection then autoFishConnection:Disconnect()end
+		notify("Đóng Câu Cá")
+	end
 end)
+
 bypassFishButton.MouseButton1Click:Connect(function()
-    if not isFishing then return end
-    isBypassFishing=not isBypassFishing
-    isAutoFishing=false
-    bypassFishButton.Text="Snowflake Bypass Cá: "..(isBypassFishing and "BẬT"or"TẮT")
-    autoFishButton.Text="Snowflake Câu Cá BTh: TẮT"
-    if isBypassFishing then
-        fishingConnection=RunService.Heartbeat:Connect(function()
-            pcall(function()
-                for _,v in pairs(ReplicatedStorage:GetDescendants())do
-                    if v:IsA("RemoteEvent")and v.Name:lower():find("fish")then
-                        task.wait(math.random(1,5)/10)
-                        v:FireServer("Caught")
-                    end
-                end
-            end)
-        end)
-        notify("Bật Bypass Cá")
-    else
-        if fishingConnection then fishingConnection:Disconnect()fishingConnection=nil end
-        notify("Tắt Bypass Cá")
-    end
+	if not isFishing then return end
+	isBypassFishing=not isBypassFishing isAutoFishing=false
+	bypassFishButton.Text="Snowflake Bypass Cá: "..(isBypassFishing and "BẬT"or"TẮT")
+	autoFishButton.Text="Snowflake Câu Cá BTh: TẮT"
+	if isBypassFishing then
+		bypassConnection=RunService.Heartbeat:Connect(function()
+			pcall(function()
+				for _,v in pairs(ReplicatedStorage:GetDescendants())do
+					if v:IsA("RemoteEvent")and v.Name:lower():find("fish")then
+						task.wait(math.random(1,5)/10)
+						v:FireServer("Caught")
+					end
+				end
+			end)
+		end)
+		notify("Bật Bypass Cá")
+	else
+		if bypassConnection then bypassConnection:Disconnect() bypassConnection=nil end
+		notify("Tắt Bypass Cá")
+	end
 end)
+
 autoFishButton.MouseButton1Click:Connect(function()
-    if not isFishing then return end
-    isAutoFishing=not isAutoFishing
-    isBypassFishing=false
-    autoFishButton.Text="Snowflake Câu Cá BTh: "..(isAutoFishing and "BẬT"or"TẮT")
-    bypassFishButton.Text="Snowflake Bypass Cá: TẮT"
-    if isAutoFishing then
-        fishingConnection=RunService.Heartbeat:Connect(function()
-            pcall(function()
-                for _,v in pairs(ReplicatedStorage:GetDescendants())do
-                    if v:IsA("RemoteEvent")and v.Name:lower():find("cast")then
-                        v:FireServer()
-                        task.wait(math.random(15,25)/10)
-                        if v.Name:lower():find("reel")then v:FireServer()end
-                    end
-                end
-            end)
-        end)
-        notify("Bật Câu Cá BTh")
-    else
-        if fishingConnection then fishingConnection:Disconnect()fishingConnection=nil end
-        notify("Tắt Câu Cá BTh")
-    end
+	if not isFishing then return end
+	isAutoFishing=not isAutoFishing isBypassFishing=false
+	autoFishButton.Text="Snowflake Câu Cá BTh: "..(isAutoFishing and "BẬT"or"TẮT")
+	bypassFishButton.Text="Snowflake Bypass Cá: TẮT"
+	if isAutoFishing then
+		autoFishConnection=RunService.Heartbeat:Connect(function()
+			pcall(function()
+				for _,v in pairs(ReplicatedStorage:GetDescendants())do
+					if v:IsA("RemoteEvent")and v.Name:lower():find("cast")then
+						v:FireServer()
+						task.wait(math.random(15,25)/10)
+						if v.Name:lower():find("reel")then v:FireServer()end
+					end
+				end
+			end)
+		end)
+		notify("Bật Câu Cá BTh")
+	else
+		if autoFishConnection then autoFishConnection:Disconnect() autoFishConnection=nil end
+		notify("Tắt Câu Cá BTh")
+	end
 end)
+
 flyToggle.MouseButton1Click:Connect(function()
-    isFlying=not isFlying
-    flyToggle.Text="Snowflake Bay: "..(isFlying and "BẬT"or"TẮT")
-    if isFlying then
-        for i=3,1,-1 do notify("Bay trong: "..i)task.wait(1)end
-        local s,r=pcall(loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradafly/main/Kiradafly.lua"))
-    if s then notify("Bật Bay")else notify("Lỗi Bay: "..tostring(r))isFlying=false flyToggle.Text="Snowflake Bay: TẮT"end
-    else notify("Tắt Bay")end
+	isFlying=not isFlying
+	flyToggle.Text="Snowflake Bay: "..(isFlying and "BẬT"or"TẮT")
+	if isFlying then
+		for i=3,1,-1 do notify("Bay trong: "..i) task.wait(1)end
+		local ok,err=pcall(function()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradafly/main/Kiradafly.lua"))()
+		end)
+		if ok then notify("Bật Bay")else isFlying=false flyToggle.Text="Snowflake Bay: TẮT" notify("Lỗi Bay: "..tostring(err))end
+	else notify("Tắt Bay")end
 end)
+
 player.CharacterAdded:Connect(function(c)
-    character=c
-    humanoid=c:WaitForChild("Humanoid",5)
-    rootPart=c:WaitForChild("HumanoidRootPart",5)
-    if isNoClip then for _,p in pairs(c:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=false end end end
+	character=c
+	humanoid=c:WaitForChild("Humanoid",5)
+	rootPart=c:WaitForChild("HumanoidRootPart",5)
+	if isNoClip then for _,p in pairs(c:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=false end end end
 end)
+
 local dragging=false local dragStart,startPos
 toggleButton.InputBegan:Connect(function(i)
-    if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-        dragging=true dragStart=i.Position startPos=toggleButton.Position
-    end
+	if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+		dragging=true dragStart=i.Position startPos=toggleButton.Position
+	end
 end)
 toggleButton.InputChanged:Connect(function(i)
-    if dragging and(i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)then
-        local d=i.Position-dragStart
-        toggleButton.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
-    end
+	if dragging and(i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)then
+		local d=i.Position-dragStart
+		toggleButton.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
+	end
 end)
 toggleButton.InputEnded:Connect(function(i)
-    if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=false end
+	if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dragging=false end
 end)
+
+RunService.Heartbeat:Connect(function()
+	pcall(function()
+		task.wait(math.random(5,15)/10)
+		if humanoid then
+			humanoid.WalkSpeed=math.clamp(humanoid.WalkSpeed,16,100)
+			humanoid.JumpPower=math.clamp(humanoid.JumpPower,50,100)
+		end
+	end)
+end)
+
+notify("Kirada Giáng Sinh đã tải xong! Nhấn M để mở.")
