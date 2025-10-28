@@ -131,6 +131,8 @@ local killAuraToggle=createButton("KillAuraToggle",UDim2.new(0,10,0,290),"Kill A
 local historyToggle=createButton("HistoryToggle",UDim2.new(0,150,0,290),"Lịch Sử: TẮT",scrollingFrame)
 local bypassFishButton=createButton("BypassFishButton",UDim2.new(0,10,0,20),"Bypass Cá",fishingFrame)
 local autoFishButton=createButton("AutoFishButton",UDim2.new(0,10,0,80),"Câu Cá BTh",fishingFrame)
+local rainLightCopy=createButton("RainLightCopy",UDim2.new(0,10,0,350),"Copy: Một ngày mưa nhẹ",scrollingFrame)
+local tacoRainCopy=createButton("TacoRainCopy",UDim2.new(0,150,0,350),"Copy: Cơn mưa taco",scrollingFrame)
 local isNoClip,isFishing,isBypassFishing,isAutoFishing,isFlying,isAntiAfk,isWaterWalk,isInfiniteJump,isKillAura,isHistory=false,false,false,false,false,false,false,false,false,false
 local customWalkSpeed,customJumpPower=16,50
 local noclipConnection,fishingConnection,waterWalkConnection,waterPlatform,antiAfkConnection,infiniteJumpConnection,killAuraConnection,historyConnection=nil,nil,nil,nil,nil,nil,nil,nil
@@ -166,7 +168,7 @@ local function createSnowflake()
     s.Size=UDim2.new(0,math.random(10,20),0,math.random(10,20))
     s.Position=UDim2.new(0,math.random(0,screenSize.X),0,math.random(-50,0))
     s.BackgroundTransparency=1
-    s.Image="rbxassetid://241560853" -- bông tuyết thật
+    s.Image="rbxassetid://241560853"
     s.ImageColor3=Color3.fromRGB(255,255,255)
     s.ImageTransparency=0
     s.Rotation=math.random(-45,45)
@@ -201,6 +203,14 @@ local function stopSnow()
     for _,s in pairs(snowflakes)do if s and s.Parent then s:Destroy()end end
     snowflakes={}
 end
+local function copyID(id,name)
+    if setclipboard then
+        setclipboard(id)
+        game.StarterGui:SetCore("SendNotification",{Title="COPY ID!",Text=name.."\nID: "..id,Duration=2})
+    end
+end
+rainLightCopy.MouseButton1Click:Connect(function()copyID("81829609054965","Một ngày mưa nhẹ")end)
+tacoRainCopy.MouseButton1Click:Connect(function()copyID("142376088","Cơn mưa taco")end)
 toggleButton.MouseButton1Click:Connect(function()
     mainFrame.Visible=not mainFrame.Visible
     TweenService:Create(mainFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quad),{Position=mainFrame.Visible and UDim2.new(0.5,-225,0.5,-200)or UDim2.new(0.5,-225,1,0)}):Play()
@@ -243,9 +253,9 @@ noclipToggle.MouseButton1Click:Connect(function()
         noclipConnection=RunService.Stepped:Connect(function()
             if character then for _,p in pairs(character:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=false end end end
         end)
-notify("Bật Xuyên Tường")
+        notify("Bật Xuyên Tường")
     else
-        if noclipConnection then noclipConnection:Disconnect()noclipConnection=nil end
+        if noclip,connection then noclipConnection:Disconnect()noclipConnection=nil end
         if character then for _,p in pairs(character:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=true end end end
         notify("Tắt Xuyên Tường")
     end
@@ -290,7 +300,7 @@ waterWalkToggle.MouseButton1Click:Connect(function()
                 else waterPlatform.Position=Vector3.new(0,-1000,0)end
             end
         end)
-notify("Bật Đi Trên Nước")
+        notify("Bật Đi Trên Nước")
     else
         if waterWalkConnection then waterWalkConnection:Disconnect()waterWalkConnection=nil end
         if waterPlatform then waterPlatform:Destroy()waterPlatform=nil end
@@ -417,8 +427,8 @@ flyToggle.MouseButton1Click:Connect(function()
     flyToggle.Text="Snowflake Bay: "..(isFlying and "BẬT"or"TẮT")
     if isFlying then
         for i=3,1,-1 do notify("Bay trong: "..i)task.wait(1)end
-        local s,r=pcall(loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradafly/main/Kiradafly.lua")))
-        if s then notify("Bật Bay")else notify("Lỗi Bay: "..tostring(r))isFlying=false flyToggle.Text="Snowflake Bay: TẮT"end
+        local s,r=pcall(loadstring(game:HttpGet("https://raw.githubusercontent.com/kiradavnreal/Kiradafly/main/Kiradafly.lua"))
+    if s then notify("Bật Bay")else notify("Lỗi Bay: "..tostring(r))isFlying=false flyToggle.Text="Snowflake Bay: TẮT"end
     else notify("Tắt Bay")end
 end)
 player.CharacterAdded:Connect(function(c)
@@ -426,20 +436,6 @@ player.CharacterAdded:Connect(function(c)
     humanoid=c:WaitForChild("Humanoid",5)
     rootPart=c:WaitForChild("HumanoidRootPart",5)
     if isNoClip then for _,p in pairs(c:GetDescendants())do if p:IsA("BasePart")then p.CanCollide=false end end end
-end)
-local function copyID(id,name)
-    if setclipboard then
-        setclipboard(id)
-        game.StarterGui:SetCore("SendNotification",{Title="COPY ID!",Text=name.."\nID: "..id,Duration=2})
-    end
-end
-local rainLightCopy=createButton("RainLightCopy",UDim2.new(0,10,0,350),"Copy: Một ngày mưa nhẹ",scrollingFrame)
-rainLightCopy.MouseButton1Click:Connect(function()
-    copyID("81829609054965","Một ngày mưa nhẹ")
-end)
-local tacoRainCopy=createButton("TacoRainCopy",UDim2.new(0,150,0,350),"Copy: Cơn mưa taco",scrollingFrame)
-tacoRainCopy.MouseButton1Click:Connect(function()
-    copyID("142376088","Cơn mưa taco")
 end)
 local dragging=false local dragStart,startPos
 toggleButton.InputBegan:Connect(function(i)
